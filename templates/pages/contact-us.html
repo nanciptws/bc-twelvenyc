@@ -1,0 +1,69 @@
+---
+gql: "{ customer { formFields { name ... on MultipleChoiceFormFieldValue { value } } } }"
+---
+{{assignVar "customerRegion" ""}}
+{{#each gql.data.customer.formFields}}
+    {{#if this.name '==' 'Region'}}
+        {{assignVar "customerRegion" this.value}}
+    {{/if}}
+{{/each}}
+
+{{#partial "page"}}
+
+<div class="twelve-contact-shell">
+    {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+
+    <main class="twelve-contact" aria-labelledby="contact-page-title">
+        <section class="twelve-contact__intro">
+            <span class="twelve-contact__eyebrow">Contact us</span>
+            <h1 id="contact-page-title" class="twelve-contact__title">Visit one of our 3 global showrooms</h1>
+            <p class="twelve-contact__lede">Wherever you&rsquo;re based, our team is here to help &mdash; from new briefs and product questions to quotes, production and delivery.</p>
+
+            <div class="twelve-contact__offices">
+                <address class="twelve-contact__office">
+                    <span class="twelve-contact__eyebrow">New York</span>
+                    <p>45 Main St.<br>Suite 615<br>Brooklyn, NY 11201, US</p>
+                    <a href="mailto:ELC_NACR_GLOBAL@twelvenyc.com">ELC_NACR_GLOBAL@twelvenyc.com</a>
+                </address>
+
+                <address class="twelve-contact__office">
+                    <span class="twelve-contact__eyebrow">London</span>
+                    <p>60&ndash;66 Wardour Street<br>National House 2B<br>London, England, GB</p>
+                    <a href="mailto:ELC_EUKEM@twelvenyc.com">ELC_EUKEM@twelvenyc.com</a>
+                </address>
+
+                <address class="twelve-contact__office">
+                    <span class="twelve-contact__eyebrow">Paris</span>
+                    <p>10, Rue de Ch&acirc;teaudun<br>Paris, &Icirc;le-de-France 75009, FR</p>
+                    <a href="mailto:ELC_EUKEM@twelvenyc.com">ELC_EUKEM@twelvenyc.com</a>
+                </address>
+            </div>
+
+            <div class="twelve-contact__shipping">
+                <div>
+                    <span class="twelve-contact__eyebrow">Production &amp; shipping</span>
+                    <p>Lead times and production details.</p>
+                </div>
+                <a class="twelve-contact__detail-link" href="/production-shipping/">View details <span aria-hidden="true">&rarr;</span></a>
+            </div>
+        </section>
+
+        <section class="twelve-contact__card" aria-labelledby="contact-form-title">
+            {{#if forms.contact.success}}
+                <div id="contact-us-success">{{{lang 'forms.contact_us.successful' shopPath=urls.home}}}</div>
+            {{else}}
+                <h2 id="contact-form-title" class="twelve-contact__form-title">Contact us</h2>
+                <p class="twelve-contact__form-intro">Initiate a project, request a shipping quote or discuss design.</p>
+                {{#if customer}}
+                    <p class="twelve-contact__signed-in">Signed in as <strong>{{customer.name}}</strong> &middot; {{customer.email}}</p>
+                {{/if}}
+                <div class="loadingOverlay contact-loadingOverlay" style="display: none;">&nbsp;</div>
+                {{> components/page/contact-us-form}}
+            {{/if}}
+        </section>
+    </main>
+</div>
+
+{{/partial}}
+
+{{> layout/base}}

@@ -1,0 +1,1698 @@
+<div class="bc-authentication-model" aria-hidden="true" style="display: none;">
+
+    {{!-- Step-sign-in --}}
+    <div class="bc-auth-inner m-large step-sign-in" aria-hidden="false">
+
+        <div class="bc-auth-header">
+            <button class="bc-auth-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
+        </div>
+        
+        <div class="bc-auth-content">
+            <div class="bc-auth-left">
+                <p class="h3" style="margin-bottom: 20px;">{{lang 'login.heading' }}</p>
+                <div class="alertBox">
+                <div class="alertBox-column alertBox-icon">
+                    <icon glyph="ic-error" class="icon ic-error" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM14.8766 14.9891L13.3297 14.982L11 12.2047L8.67266 14.9797L7.12344 14.9867C7.02031 14.9867 6.93594 14.9047 6.93594 14.7992C6.93594 14.7547 6.95234 14.7125 6.98047 14.6773L10.0297 11.0445L6.98047 7.41406C6.95215 7.37971 6.93643 7.3367 6.93594 7.29219C6.93594 7.18906 7.02031 7.10469 7.12344 7.10469L8.67266 7.11172L11 9.88906L13.3273 7.11406L14.8742 7.10703C14.9773 7.10703 15.0617 7.18906 15.0617 7.29453C15.0617 7.33906 15.0453 7.38125 15.0172 7.41641L11.9727 11.0469L15.0195 14.6797C15.0477 14.7148 15.0641 14.757 15.0641 14.8016C15.0641 14.9047 14.9797 14.9891 14.8766 14.9891Z" fill="#FF4D4F"/>
+                        </svg>
+                    </icon>
+                    <icon glyph="ic-success" class="icon ic-success" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M7 0C3.13438 0 0 3.13438 0 7C0 10.8656 3.13438 14 7 14C10.8656 14 14 10.8656 14 7C14 3.13438 10.8656 0 7 0ZM10.0234 4.71406L6.73281 9.27656C6.68682 9.34076 6.62619 9.39306 6.55595 9.42914C6.48571 9.46523 6.40787 9.48405 6.32891 9.48405C6.24994 9.48405 6.17211 9.46523 6.10186 9.42914C6.03162 9.39306 5.97099 9.34076 5.925 9.27656L3.97656 6.57656C3.91719 6.49375 3.97656 6.37813 4.07812 6.37813H4.81094C4.97031 6.37813 5.12187 6.45469 5.21562 6.58594L6.32812 8.12969L8.78438 4.72344C8.87813 4.59375 9.02812 4.51562 9.18906 4.51562H9.92188C10.0234 4.51562 10.0828 4.63125 10.0234 4.71406Z" fill="#52C41A"/>
+                        </svg>
+                    </icon>
+                </div>
+                    <p class="alertBox-column alertBox-message"><span id="alertBox-message-text"></span></p>
+                    <button class="alertBox-close"><svg width="24" height="24"><use href="#icon-close"></use></svg></button>
+                </div>
+
+                <form class="model-login-with-password-form" method="POST">
+
+                    <div class="loadingOverlay auth-model-loadingOverlay" style="display: none;">&nbsp;</div>
+
+                    <div class="form-field">
+                    <label class="form-label" for="login-email-wp">
+                        {{lang 'login.field_email' }}
+                    </label>
+                    <input class="form-input" id="login-email-wp" type="email" name="email-wp" autocomplete="username" required placeholder="name@mail.com" maxlength="50"  />
+                    </div>
+
+                    <div class="form-field">
+                    <label class="form-label" for="login-password-wp">
+                        {{lang 'login.field_password' }}
+                    </label>
+                    <div class="view-password-action">
+                        <input class="form-input" id="login-password-wp" type="password" name="password-wp" autocomplete="current-password" required placeholder="********" maxlength="30" autocomplete="on" />
+                        <span class="view-password-icon">
+                        <svg width="14" height="13" viewBox="0 0 14 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M13.7219 6.59733C13.1727 5.44014 12.519 4.49639 11.761 3.76607L10.966 4.56107C11.6143 5.18061 12.179 5.99108 12.6672 7.00045C11.3672 9.69108 9.52193 10.9692 7.00006 10.9692C6.24308 10.9692 5.54584 10.8526 4.90834 10.6195L4.04693 11.4809C4.93235 11.8898 5.91673 12.0942 7.00006 12.0942C10.0032 12.0942 12.2438 10.5301 13.7219 7.40201C13.7814 7.27621 13.8122 7.1388 13.8122 6.99967C13.8122 6.86054 13.7814 6.72313 13.7219 6.59733ZM12.7287 1.58732L12.0626 0.92045C12.051 0.908828 12.0372 0.899608 12.022 0.893317C12.0068 0.887027 11.9905 0.883789 11.9741 0.883789C11.9577 0.883789 11.9414 0.887027 11.9263 0.893317C11.9111 0.899608 11.8973 0.908828 11.8857 0.92045L10.1768 2.62857C9.23459 2.14732 8.17568 1.9067 7.00006 1.9067C3.99693 1.9067 1.75631 3.47076 0.278185 6.59889C0.218771 6.7247 0.187958 6.8621 0.187958 7.00123C0.187958 7.14036 0.218771 7.27777 0.278185 7.40357C0.868706 8.64733 1.57964 9.64425 2.411 10.3944L0.75756 12.0473C0.734135 12.0708 0.720977 12.1025 0.720977 12.1357C0.720977 12.1688 0.734135 12.2006 0.75756 12.224L1.42459 12.8911C1.44803 12.9145 1.47981 12.9277 1.51295 12.9277C1.54609 12.9277 1.57787 12.9145 1.60131 12.8911L12.7287 1.7642C12.7403 1.75259 12.7495 1.7388 12.7558 1.72363C12.7621 1.70846 12.7653 1.69219 12.7653 1.67576C12.7653 1.65934 12.7621 1.64307 12.7558 1.62789C12.7495 1.61272 12.7403 1.59893 12.7287 1.58732ZM1.33287 7.00045C2.63443 4.30983 4.47975 3.0317 7.00006 3.0317C7.85225 3.0317 8.62709 3.17795 9.33006 3.47529L8.23162 4.57373C7.71142 4.29617 7.11577 4.19316 6.53257 4.2799C5.94936 4.36663 5.40947 4.63851 4.99255 5.05544C4.57562 5.47236 4.30374 6.01225 4.21701 6.59546C4.13027 7.17867 4.23328 7.77431 4.51084 8.29451L3.2074 9.59795C2.486 8.96123 1.86412 8.09858 1.33287 7.00045ZM5.18756 7.00045C5.18783 6.72493 5.2531 6.45335 5.37804 6.20779C5.50299 5.96223 5.68411 5.7496 5.90667 5.58718C6.12923 5.42477 6.38697 5.31714 6.65894 5.27305C6.93092 5.22895 7.20946 5.24964 7.47193 5.33342L5.27053 7.53483C5.21535 7.36208 5.18736 7.1818 5.18756 7.00045Z" fill="black" fill-opacity="0.88"/>
+                            <path d="M6.9377 8.75031C6.88364 8.75031 6.83036 8.74781 6.77754 8.74297L5.95223 9.56828C6.44862 9.75838 6.98945 9.80063 7.50934 9.68991C8.02923 9.57919 8.50591 9.32025 8.88177 8.94439C9.25763 8.56853 9.51657 8.09185 9.62729 7.57196C9.73801 7.05207 9.69576 6.51124 9.50566 6.01485L8.68035 6.84016C8.6852 6.89297 8.6877 6.94626 8.6877 7.00032C8.68782 7.23017 8.64264 7.45778 8.55474 7.67016C8.46684 7.88253 8.33794 8.0755 8.17541 8.23803C8.01288 8.40055 7.81992 8.52945 7.60754 8.61735C7.39517 8.70526 7.16755 8.75044 6.9377 8.75031Z" fill="black" fill-opacity="0.88"/>
+                        </svg>
+                        </span>
+                    </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="customer-signin-link">Send me a sign-in link instead</button>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary btn-model-login-wp" data-testid="btn-sign-in">{{lang 'login.submit_value' }}</button>
+                        <button type="button" class="login-reset-password" onclick="window.location.href = '/login.php?action=reset_password#/forgotPassword'">{{lang 'login.forgot_password' }}</button>
+                    </div>
+                </form>
+
+                <form class="model-login-form" method="POST" style="display: none;">
+
+                    <div class="loadingOverlay auth-model-loadingOverlay" style="display: none;">&nbsp;</div>
+
+                    <div class="form-field">
+                        <label class="form-label" for="login-email">
+                            {{!-- lang 'login.field_email' --}}
+                            Confirm your email address
+                        </label>
+                        <input class="form-input" id="login-email" type="email" name="email" autocomplete="username" required placeholder="name@mail.com" maxlength="50"  />
+                        <p style="margin: 10px 0;">
+                            Enter the email address associated to your account. <br/>We will send you a sign-in link.
+                        </p>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="customer-signin-password">Sign-in using password instead</button>
+                    </div>
+
+                    <div class="form-actions">
+                        
+                        <button type="submit" class="button button--primary btn-model-login" data-testid="btn-sign-in">
+                            {{!-- lang 'login.submit_value' --}}
+                            Send me a sign-in link
+                        </button>
+                    </div>
+                </form>
+
+            </div>
+
+            <div class="bc-auth-right">
+                <p class="h3">Create an online profile</p>
+                <p class="h4">From the platform, you will be able to:</p>
+                <ul>
+                    <li>Browse the current TWELVE assortment</li>
+                    <li>View product details, imagery and pricing</li>
+                    <li>Save products to your favorites</li>
+                    <li>Return to your saved list at any time</li>
+                    <li>Submit products you would like to discuss with TWELVE</li>
+                </ul>
+                <button class="button button--primary" onclick="navigateCreateCompany();$('.action-company-step-1-back').show();" data-testid="btn-create-account">{{lang 'login.new_customer.create_account' }}</button>
+            </div>
+
+        </div>
+    </div>
+
+    {{!-- Profile Registration | Company Step - 0 --}}
+    <div class="bc-auth-inner is-layout-1 company-create-b2b-step-0" aria-hidden="false"
+        style="max-width: 550px;display: none;">
+
+        <div class="bc-auth-header">
+            <p class="bc-hdr-h2">
+                {{{lang 'b2b.modal_title'}}}
+            </p>
+            <button class="bc-auth-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="bc-auth-content">
+            <div class="divRow">
+
+                <div class="step-counters">
+
+                    <div class="step-counter is-active">
+                        <span class="step-number">1</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_1'}}}</span>
+                    </div>
+
+                    <div class="step-counter">
+                        <span class="step-number">2</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_2'}}}</span>
+                    </div>
+
+                    {{!-- 
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_3'}}}</span>
+                    </div>
+                    --}}
+
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_4'}}}</span>
+                    </div>
+
+                </div>
+
+
+                <div class="alertBoxInfo alertBoxInfo--info company-not-found-message"
+                    style="display: none;margin: 15px 0 20px 0;">
+                    <p class="alertBox-column alertBoxInfo-message">
+                        <span id="alertBoxInfo-message-text" style="color: #002C8C;">
+                            {{{lang 'b2b.company_not_found'}}}
+                        </span>
+                    </p>
+                </div>
+
+                <div class="alertBox">
+                    <div class="alertBox-column alertBox-icon">
+                        <icon glyph="ic-error" class="icon ic-error" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM14.8766 14.9891L13.3297 14.982L11 12.2047L8.67266 14.9797L7.12344 14.9867C7.02031 14.9867 6.93594 14.9047 6.93594 14.7992C6.93594 14.7547 6.95234 14.7125 6.98047 14.6773L10.0297 11.0445L6.98047 7.41406C6.95215 7.37971 6.93643 7.3367 6.93594 7.29219C6.93594 7.18906 7.02031 7.10469 7.12344 7.10469L8.67266 7.11172L11 9.88906L13.3273 7.11406L14.8742 7.10703C14.9773 7.10703 15.0617 7.18906 15.0617 7.29453C15.0617 7.33906 15.0453 7.38125 15.0172 7.41641L11.9727 11.0469L15.0195 14.6797C15.0477 14.7148 15.0641 14.757 15.0641 14.8016C15.0641 14.9047 14.9797 14.9891 14.8766 14.9891Z"
+                                    fill="#FF4D4F" />
+                            </svg>
+                        </icon>
+                        <icon glyph="ic-success" class="icon ic-success" aria-hidden="true">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M7 0C3.13438 0 0 3.13438 0 7C0 10.8656 3.13438 14 7 14C10.8656 14 14 10.8656 14 7C14 3.13438 10.8656 0 7 0ZM10.0234 4.71406L6.73281 9.27656C6.68682 9.34076 6.62619 9.39306 6.55595 9.42914C6.48571 9.46523 6.40787 9.48405 6.32891 9.48405C6.24994 9.48405 6.17211 9.46523 6.10186 9.42914C6.03162 9.39306 5.97099 9.34076 5.925 9.27656L3.97656 6.57656C3.91719 6.49375 3.97656 6.37813 4.07812 6.37813H4.81094C4.97031 6.37813 5.12187 6.45469 5.21562 6.58594L6.32812 8.12969L8.78438 4.72344C8.87813 4.59375 9.02812 4.51562 9.18906 4.51562H9.92188C10.0234 4.51562 10.0828 4.63125 10.0234 4.71406Z"
+                                    fill="#52C41A" />
+                            </svg>
+                        </icon>
+                    </div>
+                    <p class="alertBox-column alertBox-message"><span id="alertBox-message-text"></span></p>
+                    <button class="alertBox-close"><svg width="24" height="24">
+                            <use href="#icon-close"></use>
+                        </svg></button>
+                </div>
+
+                <form class="form-company-b2b-step-0" method="POST" novalidate>
+
+                    <div class="form-content">
+                        <div class="loadingOverlay cb2b-step-0-loadingOverlay" style="display: none;">&nbsp;</div>
+
+                        <div class="form-row">
+
+                            <div class="form-field">
+                                <label class="form-label" for="cb2b-company-admin-fname">
+                                    <small>*</small> {{{lang 'b2b.first_name'}}}
+                                </label>
+                                <input class="form-input" id="cb2b-company-admin-fname" name="cb2b-company-admin-fname"
+                                    required type="text" maxlength="50" />
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-label" for="cb2b-company-admin-lname">
+                                    <small>*</small> {{{lang 'b2b.last_name'}}}
+                                </label>
+                                <input class="form-input" id="cb2b-company-admin-lname" name="cb2b-company-admin-lname"
+                                    required type="text" maxlength="50" />
+                            </div>
+
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-company-admin-email">
+                                <small>*</small> {{{lang 'b2b.email'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <input class="form-input" id="cb2b-company-admin-email" name="cb2b-company-admin-email" required type="email" maxlength="120" value="" />
+                                <p style="font-size: 14px;color: #686868;margin: 5px 0;display: block;">
+                                    {{{lang 'b2b.email_info'}}}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bc-formFields"></div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit"
+                            class="button button--primary btn-cb2b-user-account-admin-continue">{{{lang 'b2b.continue'}}}</button>
+
+                        <button type="button" class="button buttonSecondary user_reset_password"
+                            onclick="window.location.href = '/login.php?action=reset_password#/forgotPassword'"
+                            style="display: none;">{{{lang 'b2b.reset_password'}}}</button>
+
+                        <button type="button" class="button buttonSecondary action-company-step-1-back" style="display: none;" onclick="navigateSignIn();">Back</button>
+
+                    </div>
+
+                </form>
+
+
+            </div>
+        </div>
+
+    </div>
+
+    {{!-- Profile Registration | Company Step - 1 --}}
+    <div class="bc-auth-inner is-layout-1 company-create-b2b-step-1" aria-hidden="false"
+        style="max-width: 550px;display: none;">
+
+        <div class="bc-auth-header">
+            <p class="bc-hdr-h2">
+                {{{lang 'b2b.modal_title'}}}
+            </p>
+            <button class="bc-auth-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="bc-auth-content">
+            <div class="divRow">
+
+                <div class="step-counters">
+
+                    <div class="step-counter is-done">
+                        <span class="step-number">1</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_1'}}}</span>
+                    </div>
+
+                    <div class="step-counter is-active">
+                        <span class="step-number">2</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_2'}}}</span>
+                    </div>
+
+                    {{!-- 
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_3'}}}</span>
+                    </div>
+                    --}}
+
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_4'}}}</span>
+                    </div>
+
+                </div>
+
+                <div class="alertBox">
+                    <div class="alertBox-column alertBox-icon">
+                        <icon glyph="ic-error" class="icon ic-error" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM14.8766 14.9891L13.3297 14.982L11 12.2047L8.67266 14.9797L7.12344 14.9867C7.02031 14.9867 6.93594 14.9047 6.93594 14.7992C6.93594 14.7547 6.95234 14.7125 6.98047 14.6773L10.0297 11.0445L6.98047 7.41406C6.95215 7.37971 6.93643 7.3367 6.93594 7.29219C6.93594 7.18906 7.02031 7.10469 7.12344 7.10469L8.67266 7.11172L11 9.88906L13.3273 7.11406L14.8742 7.10703C14.9773 7.10703 15.0617 7.18906 15.0617 7.29453C15.0617 7.33906 15.0453 7.38125 15.0172 7.41641L11.9727 11.0469L15.0195 14.6797C15.0477 14.7148 15.0641 14.757 15.0641 14.8016C15.0641 14.9047 14.9797 14.9891 14.8766 14.9891Z"
+                                    fill="#FF4D4F" />
+                            </svg>
+                        </icon>
+                        <icon glyph="ic-success" class="icon ic-success" aria-hidden="true">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M7 0C3.13438 0 0 3.13438 0 7C0 10.8656 3.13438 14 7 14C10.8656 14 14 10.8656 14 7C14 3.13438 10.8656 0 7 0ZM10.0234 4.71406L6.73281 9.27656C6.68682 9.34076 6.62619 9.39306 6.55595 9.42914C6.48571 9.46523 6.40787 9.48405 6.32891 9.48405C6.24994 9.48405 6.17211 9.46523 6.10186 9.42914C6.03162 9.39306 5.97099 9.34076 5.925 9.27656L3.97656 6.57656C3.91719 6.49375 3.97656 6.37813 4.07812 6.37813H4.81094C4.97031 6.37813 5.12187 6.45469 5.21562 6.58594L6.32812 8.12969L8.78438 4.72344C8.87813 4.59375 9.02812 4.51562 9.18906 4.51562H9.92188C10.0234 4.51562 10.0828 4.63125 10.0234 4.71406Z"
+                                    fill="#52C41A" />
+                            </svg>
+                        </icon>
+                    </div>
+                    <p class="alertBox-column alertBox-message"><span id="alertBox-message-text"></span></p>
+                    <button class="alertBox-close"><svg width="24" height="24">
+                            <use href="#icon-close"></use>
+                        </svg></button>
+                </div>
+                {{!-- 
+                <form class="form-company-b2b-step-1" method="POST">
+
+                    <div class="form-content">
+                        <div class="loadingOverlay cb2b-step-1-loadingOverlay" style="display: none;">&nbsp;</div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-company-name">
+                                <small>*</small> {{{lang 'b2b.company_name'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <input class="form-input" id="cb2b-company-name" name="cb2b-company-name" required
+                                    type="text" maxlength="120" />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+
+                            <div class="form-field">
+                                <label class="form-label" for="cb2b-company-email">
+                                    <small>*</small> {{{lang 'b2b.company_email'}}}
+                                </label>
+                                <input class="form-input" id="cb2b-company-email" name="cb2b-company-email" required
+                                    type="email" maxlength="80" />
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-label" for="cb2b-company-phone">
+                                    <small>*</small> {{{lang 'b2b.company_phone'}}}
+                                </label>
+                                <input class="form-input" id="cb2b-company-phone" name="cb2b-company-phone" required
+                                    type="text" maxlength="15" inputmode="numeric"
+                                    onkeypress="return IsOnlyNumValue(event);" />
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit"
+                            class="button button--primary btn-cb2b-user-account-Continue">{{{lang 'b2b.continue'}}}</button>
+
+                        <button type="button" class="button buttonSecondary user_reset_password"
+                            onclick="window.location.href = '/login.php?action=reset_password#/forgotPassword'"
+                            style="display: none;">{{{lang 'b2b.reset_password'}}}</button>
+
+                        <button type="button" class="button buttonSecondary" onclick="backCompanyUserInfo()">{{{lang 'b2b.go_back'}}}</button>
+                    </div>
+
+                </form>
+                --}}
+
+            </div>
+        </div>
+
+    </div>
+
+    {{!-- Profile Registration | Company Step - 1 --}}
+    <div class="bc-auth-inner is-layout-1 company-create-b2b-step-1-companies" aria-hidden="false"
+        style="max-width: 550px;display: none;">
+
+        <div class="bc-auth-header">
+            <p class="bc-hdr-h2">
+                {{{lang 'b2b.modal_title'}}}
+            </p>
+            <button class="bc-auth-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="bc-auth-content">
+            <div class="divRow">
+
+                <div class="step-counters">
+
+                    <div class="step-counter is-done">
+                        <span class="step-number">1</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_1'}}}</span>
+                    </div>
+
+                    <div class="step-counter is-active">
+                        <span class="step-number">2</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_2'}}}</span>
+                    </div>
+
+                    {{!-- 
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_3'}}}</span>
+                    </div>
+                    --}}
+
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_4'}}}</span>
+                    </div>
+
+                </div>
+
+                <p style="font-size: 16px;">
+                    <b>{{{lang 'b2b.select_business'}}}</b>
+                </p>
+
+                <div class="step-companies-list" style="min-height: 100px;"></div>
+
+                <div class="form-actions">
+                    <button type="submit" class="button button--primary action-b2b-company-selectd"
+                        disabled>{{{lang 'b2b.continue'}}}</button>
+
+                    <button type="button" class="button buttonSecondary" onclick="backCompanyUserInfo()">{{{lang 'b2b.go_back'}}}</button>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    {{!-- Profile Registration | Company Step - 2 --}}
+    <div class="bc-auth-inner is-layout-1 company-create-b2b-step-2" aria-hidden="false"
+        style="max-width: 550px;display: none;">
+
+        <div class="bc-auth-header">
+            <p class="bc-hdr-h2">
+                {{{lang 'b2b.modal_title'}}}
+            </p>
+            <button class="bc-auth-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="bc-auth-content">
+            <div class="divRow">
+
+                <div class="step-counters">
+
+                    <div class="step-counter is-done">
+                        <span class="step-number">1</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_1'}}}</span>
+                    </div>
+
+                    <div class="step-counter is-done">
+                        <span class="step-number">2</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_2'}}}</span>
+                    </div>
+
+                    {{!-- 
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_3'}}}</span>
+                    </div>
+                    --}}
+
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_4'}}}</span>
+                    </div>
+
+                </div>
+
+                <div class="alertBox">
+                    <div class="alertBox-column alertBox-icon">
+                        <icon glyph="ic-error" class="icon ic-error" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM14.8766 14.9891L13.3297 14.982L11 12.2047L8.67266 14.9797L7.12344 14.9867C7.02031 14.9867 6.93594 14.9047 6.93594 14.7992C6.93594 14.7547 6.95234 14.7125 6.98047 14.6773L10.0297 11.0445L6.98047 7.41406C6.95215 7.37971 6.93643 7.3367 6.93594 7.29219C6.93594 7.18906 7.02031 7.10469 7.12344 7.10469L8.67266 7.11172L11 9.88906L13.3273 7.11406L14.8742 7.10703C14.9773 7.10703 15.0617 7.18906 15.0617 7.29453C15.0617 7.33906 15.0453 7.38125 15.0172 7.41641L11.9727 11.0469L15.0195 14.6797C15.0477 14.7148 15.0641 14.757 15.0641 14.8016C15.0641 14.9047 14.9797 14.9891 14.8766 14.9891Z"
+                                    fill="#FF4D4F" />
+                            </svg>
+                        </icon>
+                        <icon glyph="ic-success" class="icon ic-success" aria-hidden="true">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M7 0C3.13438 0 0 3.13438 0 7C0 10.8656 3.13438 14 7 14C10.8656 14 14 10.8656 14 7C14 3.13438 10.8656 0 7 0ZM10.0234 4.71406L6.73281 9.27656C6.68682 9.34076 6.62619 9.39306 6.55595 9.42914C6.48571 9.46523 6.40787 9.48405 6.32891 9.48405C6.24994 9.48405 6.17211 9.46523 6.10186 9.42914C6.03162 9.39306 5.97099 9.34076 5.925 9.27656L3.97656 6.57656C3.91719 6.49375 3.97656 6.37813 4.07812 6.37813H4.81094C4.97031 6.37813 5.12187 6.45469 5.21562 6.58594L6.32812 8.12969L8.78438 4.72344C8.87813 4.59375 9.02812 4.51562 9.18906 4.51562H9.92188C10.0234 4.51562 10.0828 4.63125 10.0234 4.71406Z"
+                                    fill="#52C41A" />
+                            </svg>
+                        </icon>
+                    </div>
+                    <p class="alertBox-column alertBox-message"><span id="alertBox-message-text"></span></p>
+                    <button class="alertBox-close"><svg width="24" height="24">
+                            <use href="#icon-close"></use>
+                        </svg></button>
+                </div>
+
+                <form class="form-company-b2b-step-2" method="POST">
+
+                    <div class="form-content">
+                        <div class="loadingOverlay cb2b-step-2-loadingOverlay" style="display: none;">&nbsp;</div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-address-country">
+                                <small>*</small> {{{lang 'b2b.country'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <select class="form-select" name="cb2b-address-country" id="cb2b-address-country"
+                                    required>
+                                    <option value="">{{{lang 'b2b.select'}}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-address-line1">
+                                <small>*</small> {{{lang 'b2b.address'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <input class="form-input" id="cb2b-address-line1" name="cb2b-address-line1" required
+                                    type="text" maxlength="120" />
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-address-line2">
+                                {{{lang 'b2b.address_line_2'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <input class="form-input" id="cb2b-address-line2" name="cb2b-address-line2" type="text"
+                                    maxlength="120" />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+
+                            <div class="form-field">
+                                <label class="form-label" for="cb2b-address-city">
+                                    <small>*</small> {{{lang 'b2b.city'}}}
+                                </label>
+                                <input class="form-input" id="cb2b-address-city" name="cb2b-address-city" required
+                                    type="text" maxlength="80" onkeypress="return /[a-z]/i.test(event.key)" />
+                            </div>
+
+                            <div class="form-field">
+                                <label class="form-label" for="cb2b-address-state">
+                                    <small>*</small> {{{lang 'b2b.state'}}}
+                                </label>
+                                <div class="div_state_province">
+                                    <input type="text" class="form-input drp_txt_state_province" id="cb2b-address-state"
+                                        required />
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-address-zip">
+                                <small>*</small> {{{lang 'b2b.zip_code'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <input class="form-input" id="cb2b-address-zip" name="cb2b-address-zip" required
+                                    type="text" maxlength="120" />
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary btn-cb2b-address-Continue">{{{lang 'b2b.continue'}}}</button>
+                        <button type="button" class="button buttonSecondary" onclick="backB2BAccount()">{{{lang 'b2b.go_back'}}}</button>
+                    </div>
+
+                </form>
+
+
+            </div>
+        </div>
+
+    </div>
+
+    {{!-- Profile Registration | Company Step - 3 --}}
+    <div class="bc-auth-inner is-layout-1 company-create-b2b-step-3" aria-hidden="false"
+        style="max-width: 550px;display: none;">
+
+        <div class="bc-auth-header">
+            <p class="bc-hdr-h2">
+                {{{lang 'b2b.modal_title'}}}
+            </p>
+            <button class="bc-auth-close">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24">
+                    <path
+                        d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="bc-auth-content">
+            <div class="divRow">
+
+                <div class="step-counters">
+
+                    <div class="step-counter is-done">
+                        <span class="step-number">1</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_1'}}}</span>
+                    </div>
+
+                    <div class="step-counter is-done">
+                        <span class="step-number">2</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_2'}}}</span>
+                    </div>
+
+                    {{!-- 
+                    <div class="step-counter">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_3'}}}</span>
+                    </div>
+                    --}}
+
+                    <div class="step-counter is-active">
+                        <span class="step-number">3</span>
+                        <span class="step-title">{{{lang 'b2b.step_counter_4'}}}</span>
+                    </div>
+
+                </div>
+
+                <div class="alertBox">
+                    <div class="alertBox-column alertBox-icon">
+                        <icon glyph="ic-error" class="icon ic-error" aria-hidden="true">
+                            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11 0.5C5.20156 0.5 0.5 5.20156 0.5 11C0.5 16.7984 5.20156 21.5 11 21.5C16.7984 21.5 21.5 16.7984 21.5 11C21.5 5.20156 16.7984 0.5 11 0.5ZM14.8766 14.9891L13.3297 14.982L11 12.2047L8.67266 14.9797L7.12344 14.9867C7.02031 14.9867 6.93594 14.9047 6.93594 14.7992C6.93594 14.7547 6.95234 14.7125 6.98047 14.6773L10.0297 11.0445L6.98047 7.41406C6.95215 7.37971 6.93643 7.3367 6.93594 7.29219C6.93594 7.18906 7.02031 7.10469 7.12344 7.10469L8.67266 7.11172L11 9.88906L13.3273 7.11406L14.8742 7.10703C14.9773 7.10703 15.0617 7.18906 15.0617 7.29453C15.0617 7.33906 15.0453 7.38125 15.0172 7.41641L11.9727 11.0469L15.0195 14.6797C15.0477 14.7148 15.0641 14.757 15.0641 14.8016C15.0641 14.9047 14.9797 14.9891 14.8766 14.9891Z"
+                                    fill="#FF4D4F" />
+                            </svg>
+                        </icon>
+                        <icon glyph="ic-success" class="icon ic-success" aria-hidden="true">
+                            <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M7 0C3.13438 0 0 3.13438 0 7C0 10.8656 3.13438 14 7 14C10.8656 14 14 10.8656 14 7C14 3.13438 10.8656 0 7 0ZM10.0234 4.71406L6.73281 9.27656C6.68682 9.34076 6.62619 9.39306 6.55595 9.42914C6.48571 9.46523 6.40787 9.48405 6.32891 9.48405C6.24994 9.48405 6.17211 9.46523 6.10186 9.42914C6.03162 9.39306 5.97099 9.34076 5.925 9.27656L3.97656 6.57656C3.91719 6.49375 3.97656 6.37813 4.07812 6.37813H4.81094C4.97031 6.37813 5.12187 6.45469 5.21562 6.58594L6.32812 8.12969L8.78438 4.72344C8.87813 4.59375 9.02812 4.51562 9.18906 4.51562H9.92188C10.0234 4.51562 10.0828 4.63125 10.0234 4.71406Z"
+                                    fill="#52C41A" />
+                            </svg>
+                        </icon>
+                    </div>
+                    <p class="alertBox-column alertBox-message"><span id="alertBox-message-text"></span></p>
+                    <button class="alertBox-close"><svg width="24" height="24">
+                            <use href="#icon-close"></use>
+                        </svg></button>
+                </div>
+
+                <form class="form-company-b2b-step-3" method="POST">
+
+                    <div class="form-content">
+
+
+                        <div class="loadingOverlay cb2b-step-3-loadingOverlay" style="display: none;">&nbsp;</div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-account-new-password">
+                                {{{lang 'b2b.new_password'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <input class="form-input" id="cb2b-account-new-password" type="password" required
+                                    placeholder="********" maxlength="30" autocomplete="on" />
+                                <span class="view-password-icon">
+                                    <svg width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M13.7219 6.59733C13.1727 5.44014 12.519 4.49639 11.761 3.76607L10.966 4.56107C11.6143 5.18061 12.179 5.99108 12.6672 7.00045C11.3672 9.69108 9.52193 10.9692 7.00006 10.9692C6.24308 10.9692 5.54584 10.8526 4.90834 10.6195L4.04693 11.4809C4.93235 11.8898 5.91673 12.0942 7.00006 12.0942C10.0032 12.0942 12.2438 10.5301 13.7219 7.40201C13.7814 7.27621 13.8122 7.1388 13.8122 6.99967C13.8122 6.86054 13.7814 6.72313 13.7219 6.59733ZM12.7287 1.58732L12.0626 0.92045C12.051 0.908828 12.0372 0.899608 12.022 0.893317C12.0068 0.887027 11.9905 0.883789 11.9741 0.883789C11.9577 0.883789 11.9414 0.887027 11.9263 0.893317C11.9111 0.899608 11.8973 0.908828 11.8857 0.92045L10.1768 2.62857C9.23459 2.14732 8.17568 1.9067 7.00006 1.9067C3.99693 1.9067 1.75631 3.47076 0.278185 6.59889C0.218771 6.7247 0.187958 6.8621 0.187958 7.00123C0.187958 7.14036 0.218771 7.27777 0.278185 7.40357C0.868706 8.64733 1.57964 9.64425 2.411 10.3944L0.75756 12.0473C0.734135 12.0708 0.720977 12.1025 0.720977 12.1357C0.720977 12.1688 0.734135 12.2006 0.75756 12.224L1.42459 12.8911C1.44803 12.9145 1.47981 12.9277 1.51295 12.9277C1.54609 12.9277 1.57787 12.9145 1.60131 12.8911L12.7287 1.7642C12.7403 1.75259 12.7495 1.7388 12.7558 1.72363C12.7621 1.70846 12.7653 1.69219 12.7653 1.67576C12.7653 1.65934 12.7621 1.64307 12.7558 1.62789C12.7495 1.61272 12.7403 1.59893 12.7287 1.58732ZM1.33287 7.00045C2.63443 4.30983 4.47975 3.0317 7.00006 3.0317C7.85225 3.0317 8.62709 3.17795 9.33006 3.47529L8.23162 4.57373C7.71142 4.29617 7.11577 4.19316 6.53257 4.2799C5.94936 4.36663 5.40947 4.63851 4.99255 5.05544C4.57562 5.47236 4.30374 6.01225 4.21701 6.59546C4.13027 7.17867 4.23328 7.77431 4.51084 8.29451L3.2074 9.59795C2.486 8.96123 1.86412 8.09858 1.33287 7.00045ZM5.18756 7.00045C5.18783 6.72493 5.2531 6.45335 5.37804 6.20779C5.50299 5.96223 5.68411 5.7496 5.90667 5.58718C6.12923 5.42477 6.38697 5.31714 6.65894 5.27305C6.93092 5.22895 7.20946 5.24964 7.47193 5.33342L5.27053 7.53483C5.21535 7.36208 5.18736 7.1818 5.18756 7.00045Z"
+                                            fill="black" fill-opacity="0.88" />
+                                        <path
+                                            d="M6.9377 8.75031C6.88364 8.75031 6.83036 8.74781 6.77754 8.74297L5.95223 9.56828C6.44862 9.75838 6.98945 9.80063 7.50934 9.68991C8.02923 9.57919 8.50591 9.32025 8.88177 8.94439C9.25763 8.56853 9.51657 8.09185 9.62729 7.57196C9.73801 7.05207 9.69576 6.51124 9.50566 6.01485L8.68035 6.84016C8.6852 6.89297 8.6877 6.94626 8.6877 7.00032C8.68782 7.23017 8.64264 7.45778 8.55474 7.67016C8.46684 7.88253 8.33794 8.0755 8.17541 8.23803C8.01288 8.40055 7.81992 8.52945 7.60754 8.61735C7.39517 8.70526 7.16755 8.75044 6.9377 8.75031Z"
+                                            fill="black" fill-opacity="0.88" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="form-field">
+                            <label class="form-label" for="cb2b-account-confirm-password">
+                                {{{lang 'b2b.confirm_password'}}}
+                            </label>
+                            <div class="view-password-action">
+                                <input class="form-input" id="cb2b-account-confirm-password" type="password" required
+                                    placeholder="********" maxlength="30" autocomplete="on" />
+                                <span class="view-password-icon">
+                                    <svg width="14" height="13" viewBox="0 0 14 13" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M13.7219 6.59733C13.1727 5.44014 12.519 4.49639 11.761 3.76607L10.966 4.56107C11.6143 5.18061 12.179 5.99108 12.6672 7.00045C11.3672 9.69108 9.52193 10.9692 7.00006 10.9692C6.24308 10.9692 5.54584 10.8526 4.90834 10.6195L4.04693 11.4809C4.93235 11.8898 5.91673 12.0942 7.00006 12.0942C10.0032 12.0942 12.2438 10.5301 13.7219 7.40201C13.7814 7.27621 13.8122 7.1388 13.8122 6.99967C13.8122 6.86054 13.7814 6.72313 13.7219 6.59733ZM12.7287 1.58732L12.0626 0.92045C12.051 0.908828 12.0372 0.899608 12.022 0.893317C12.0068 0.887027 11.9905 0.883789 11.9741 0.883789C11.9577 0.883789 11.9414 0.887027 11.9263 0.893317C11.9111 0.899608 11.8973 0.908828 11.8857 0.92045L10.1768 2.62857C9.23459 2.14732 8.17568 1.9067 7.00006 1.9067C3.99693 1.9067 1.75631 3.47076 0.278185 6.59889C0.218771 6.7247 0.187958 6.8621 0.187958 7.00123C0.187958 7.14036 0.218771 7.27777 0.278185 7.40357C0.868706 8.64733 1.57964 9.64425 2.411 10.3944L0.75756 12.0473C0.734135 12.0708 0.720977 12.1025 0.720977 12.1357C0.720977 12.1688 0.734135 12.2006 0.75756 12.224L1.42459 12.8911C1.44803 12.9145 1.47981 12.9277 1.51295 12.9277C1.54609 12.9277 1.57787 12.9145 1.60131 12.8911L12.7287 1.7642C12.7403 1.75259 12.7495 1.7388 12.7558 1.72363C12.7621 1.70846 12.7653 1.69219 12.7653 1.67576C12.7653 1.65934 12.7621 1.64307 12.7558 1.62789C12.7495 1.61272 12.7403 1.59893 12.7287 1.58732ZM1.33287 7.00045C2.63443 4.30983 4.47975 3.0317 7.00006 3.0317C7.85225 3.0317 8.62709 3.17795 9.33006 3.47529L8.23162 4.57373C7.71142 4.29617 7.11577 4.19316 6.53257 4.2799C5.94936 4.36663 5.40947 4.63851 4.99255 5.05544C4.57562 5.47236 4.30374 6.01225 4.21701 6.59546C4.13027 7.17867 4.23328 7.77431 4.51084 8.29451L3.2074 9.59795C2.486 8.96123 1.86412 8.09858 1.33287 7.00045ZM5.18756 7.00045C5.18783 6.72493 5.2531 6.45335 5.37804 6.20779C5.50299 5.96223 5.68411 5.7496 5.90667 5.58718C6.12923 5.42477 6.38697 5.31714 6.65894 5.27305C6.93092 5.22895 7.20946 5.24964 7.47193 5.33342L5.27053 7.53483C5.21535 7.36208 5.18736 7.1818 5.18756 7.00045Z"
+                                            fill="black" fill-opacity="0.88" />
+                                        <path
+                                            d="M6.9377 8.75031C6.88364 8.75031 6.83036 8.74781 6.77754 8.74297L5.95223 9.56828C6.44862 9.75838 6.98945 9.80063 7.50934 9.68991C8.02923 9.57919 8.50591 9.32025 8.88177 8.94439C9.25763 8.56853 9.51657 8.09185 9.62729 7.57196C9.73801 7.05207 9.69576 6.51124 9.50566 6.01485L8.68035 6.84016C8.6852 6.89297 8.6877 6.94626 8.6877 7.00032C8.68782 7.23017 8.64264 7.45778 8.55474 7.67016C8.46684 7.88253 8.33794 8.0755 8.17541 8.23803C8.01288 8.40055 7.81992 8.52945 7.60754 8.61735C7.39517 8.70526 7.16755 8.75044 6.9377 8.75031Z"
+                                            fill="black" fill-opacity="0.88" />
+                                    </svg>
+                                </span>
+                            </div>
+                        </div>
+
+
+                        <div class="form-field content-email-newsletter">
+
+                            <label class="form-label">
+                                <input type="checkbox" name="cb2b-account-chk-newsletter"
+                                    id="cb2b-account-chk-newsletter" checked />
+                                {{{lang 'b2b.newsletter_signup'}}}
+                            </label>
+
+                        </div>
+
+
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button button--primary cb2b-btn-model-submit">{{{lang 'b2b.submit'}}}</button>
+                        <button type="button" class="button buttonSecondary" onclick="backB2BLocation();">{{{lang 'b2b.go_back'}}}</button>
+                    </div>
+
+                </form>
+
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script nonce="{{nonce}}">
+    const authModelLoadingOverlay = $(".auth-model-loadingOverlay");
+    let middleware_server = "{{lang 'endpoints.phpServer'}}";
+    const signInStep1 = $(".step-sign-in");
+    const companyCreateStep0 = $(".company-create-b2b-step-0");
+    const companyCreateStep1 = $(".company-create-b2b-step-1");
+    const companiesFound = $(".company-create-b2b-step-1-companies");
+    const companyCreateStep2 = $(".company-create-b2b-step-2");
+    const companyCreateStep3 = $(".company-create-b2b-step-3");
+
+    const isExitMessage = `{{{lang 'b2b.existing_account_message'}}}`;
+
+    // waiting for page load to access sign pop func
+    window.onload = () => {
+        //grab url params, for example: /?signup=true
+        let pageUrlParms = new URLSearchParams(window.location.search);
+        const pageTypeSignUp = pageUrlParms.get('signup'); // bool
+        if (pageTypeSignUp == 'true') {
+            setTimeout(() => { navigateCreateCompany(); }, 400)
+        }
+        const pageTypeSignIn = pageUrlParms.get('signin'); // bool
+        if (pageTypeSignIn == 'true') {
+            setTimeout(() => { navigateSignIn(); }, 400)
+        }
+    }
+
+    function closeAuthenticationModel() {
+        $("body").removeClass('has-activeModal');
+        $(".bc-authentication-model").hide();
+        signInStep1.hide();
+        companyCreateStep0.hide();
+        companyCreateStep1.hide();
+        companyCreateStep2.hide();
+        companyCreateStep3.hide();
+        companiesFound.hide()
+        $('.action-company-step-1-back').hide();
+        $('.bc-authentication-model form').trigger("reset");
+        $(".company-create-b2b-step-1-companies .step-companies-list").html('');
+    }
+
+    //Auth Model Close
+    $(".bc-authentication-model .bc-auth-close").on("click", function () {
+        closeAuthenticationModel();
+    });
+
+    //Auth Model open
+    $("body").on("click", ".event-open-signin", function () {
+        setTimeout(() => { navigateSignIn(); }, 100)
+    });
+    $("body").on("click", ".event-open-signup", function () {
+        setTimeout(() => { navigateCreateCompany(); }, 100)
+    });
+
+    //Post request graphql
+    async function postRequestUA(endpoint, token, query) {
+        return await fetch(endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ query }),
+        });
+    }
+
+    async function loadCustomerRegionField() {
+        const formFieldsContainer = document.querySelector('.form-company-b2b-step-0 .bc-formFields');
+
+        if (!formFieldsContainer || formFieldsContainer.dataset.loaded === 'true') {
+            return;
+        }
+
+        const query = `query registrationCustomerPicklists {
+            site {
+                settings {
+                    formFields {
+                        customer {
+                            label
+                            ... on PicklistFormField {
+                                choosePrefix
+                                entityId
+                                isBuiltIn
+                                isRequired
+                                label
+                                options {
+                                    entityId
+                                    label
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }`;
+
+        try {
+            const response = await postRequestUA('/graphql', '{{settings.storefront_api.token}}', query);
+            const result = await response.json();
+            if (!response.ok || result?.errors) {
+                throw new Error(result?.errors?.[0]?.message || 'Unable to load customer form fields.');
+            }
+
+            const customerFields = result?.data?.site?.settings?.formFields?.customer || [];
+            const requestedLabels = ['Brand', 'Brand (Optional 1)', 'Brand (Optional 2)', 'Region'];
+            const fieldsByLabel = new Map(
+                customerFields
+                    .filter((field) => field?.isBuiltIn === false && Array.isArray(field?.options))
+                    .map((field) => [field.label, field])
+            );
+            const regionField = fieldsByLabel.get('Region');
+
+            if (regionField) {
+                document.querySelectorAll('[data-admin-region-select]').forEach((regionSelect) => {
+                    const selectedRegion = String(regionSelect.dataset.selectedRegion || regionSelect.value || '')
+                        .trim()
+                        .toUpperCase();
+                    const placeholder = regionSelect.options[0] || new Option('Select...', '');
+                    regionSelect.replaceChildren(placeholder);
+
+                    regionField.options.forEach((option) => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = option.label;
+                        optionElement.textContent = option.label;
+                        optionElement.dataset.fieldOptionEntityId = String(option.entityId);
+                        regionSelect.append(optionElement);
+                    });
+
+                    const matchingOption = Array.from(regionSelect.options).find((option) => (
+                        String(option.value || option.textContent).trim().toUpperCase() === selectedRegion ||
+                        String(option.dataset.fieldOptionEntityId || '') === selectedRegion
+                    ));
+                    if (matchingOption) regionSelect.value = matchingOption.value;
+                });
+            }
+
+            const fragment = document.createDocumentFragment();
+            const fieldRows = [
+                ['Region', 'Brand'],
+                ['Brand (Optional 1)', 'Brand (Optional 2)'],
+            ];
+
+            fieldRows.forEach((rowLabels) => {
+                const formRow = document.createElement('div');
+                formRow.className = 'form-row';
+
+                rowLabels.forEach((label) => {
+                    const field = fieldsByLabel.get(label);
+                    if (!field) return;
+
+                    const fieldId = label === 'Region'
+                        ? 'cb2b-company-admin-region'
+                        : `cb2b-company-admin-brand-${requestedLabels.indexOf(label) + 1}`;
+                    const fieldWrapper = document.createElement('div');
+                    fieldWrapper.className = 'form-field';
+                    fieldWrapper.dataset.customerFormField = label;
+
+                    const fieldLabel = document.createElement('label');
+                    fieldLabel.className = 'form-label';
+                    fieldLabel.htmlFor = fieldId;
+                    fieldLabel.textContent = field.label;
+
+                    if (field.isRequired) {
+                        const requiredMark = document.createElement('small');
+                        requiredMark.textContent = '*';
+                        fieldLabel.prepend(requiredMark, ' ');
+                    }
+
+                    const fieldSelect = document.createElement('select');
+                    fieldSelect.className = 'form-select';
+                    fieldSelect.id = fieldId;
+                    fieldSelect.name = fieldId;
+                    fieldSelect.required = Boolean(field.isRequired);
+                    fieldSelect.dataset.fieldEntityId = String(field.entityId);
+                    fieldSelect.dataset.fieldLabel = field.label;
+
+                    const placeholderOption = document.createElement('option');
+                    placeholderOption.value = '';
+                    placeholderOption.textContent = field.choosePrefix || `Select ${field.label}`;
+                    fieldSelect.append(placeholderOption);
+
+                    field.options.forEach((option) => {
+                        const optionElement = document.createElement('option');
+                        optionElement.value = String(option.entityId);
+                        optionElement.textContent = option.label;
+                        fieldSelect.append(optionElement);
+                    });
+
+                    fieldWrapper.append(fieldLabel, fieldSelect);
+                    formRow.append(fieldWrapper);
+                });
+
+                if (formRow.children.length) fragment.append(formRow);
+            });
+
+            formFieldsContainer.replaceChildren(fragment);
+
+            const brandSelects = Array.from(
+                formFieldsContainer.querySelectorAll('[data-customer-form-field^="Brand"] select')
+            );
+            const normalizeBrandLabel = (label) => String(label || '')
+                .replace(/&#x20;|&#32;|&nbsp;/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .toLowerCase();
+
+            const syncBrandOptions = () => {
+                const selectedBrands = brandSelects.map((select) => (
+                    select.value ? normalizeBrandLabel(select.selectedOptions[0]?.textContent) : ''
+                ));
+
+                brandSelects.forEach((select, selectIndex) => {
+                    Array.from(select.options).forEach((option) => {
+                        if (!option.value) {
+                            option.disabled = false;
+                            return;
+                        }
+
+                        const optionBrand = normalizeBrandLabel(option.textContent);
+                        option.disabled = selectedBrands.some((selectedBrand, selectedIndex) => (
+                            selectedIndex !== selectIndex && selectedBrand === optionBrand
+                        ));
+                    });
+                });
+            };
+
+            brandSelects.forEach((select) => select.addEventListener('change', syncBrandOptions));
+            syncBrandOptions();
+            formFieldsContainer.dataset.loaded = 'true';
+        } catch (error) {
+            console.error('Unable to load the customer registration fields.', error);
+        }
+    }
+
+    loadCustomerRegionField();
+
+    //get customer Info 
+    async function customerInfoUA(b2bToken) {
+        const queryCI = `query customerInfo { customerInfo { userType, userInfo { id phoneNumber lastName email firstName role companyRoleId companyRoleName } } } `;
+        const rawResponse = await postRequestUA(
+            "https://api-b2b.bigcommerce.com/graphql",
+            b2bToken,
+            queryCI
+        );
+        const content = await rawResponse.json();
+        const customer = content?.data?.customerInfo;
+        const userInfo = customer?.userInfo;
+        const userInfoId = userInfo?.id;
+        console.log('userInfoId')
+        console.log(userInfoId)
+        if (userInfoId > 0) {
+            return userInfoId
+        } else {
+            return userInfoId
+        }
+    }
+
+    function notificationAuth(ele, type, message) {
+        const alertBoxEle = $(ele + " .alertBox");
+        let alertBoxType = "alertBox--success";
+        alertBoxEle.find('.icon').hide();
+        if (type == "success") {
+            alertBoxType = "alertBox--success";
+            alertBoxEle.find('.ic-success').css('display', 'block');
+        }
+        if (type == "error") {
+            alertBoxType = "alertBox--error";
+            alertBoxEle.find('.ic-error').css('display', 'block');
+        }
+        alertBoxEle.find('#alertBox-message-text').html(message);
+        alertBoxEle.removeAttr("class").addClass("alertBox " + alertBoxType).show();
+    }
+
+    async function customerSignIn(email, password, type) {
+        try {
+
+            const escapedPassword = password?.replace(/\\/g, "\\\\")?.replace(/"/g, '\\"');
+            const query = `mutation loginPopup {  login(email:"${email}", password: "${escapedPassword}") {  customer { entityId firstName lastName email formFields { name ... on MultipleChoiceFormFieldValue { name value } } }  } }`;
+            const customrRes = await fetch("/graphql", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer {{settings.storefront_api.token}}` }, body: JSON.stringify({ query }) });
+            const customerData = await customrRes.json();
+
+            if(customerData?.errors && customerData?.errors?.length > 0) {
+                customerData?.errors?.forEach((error) => {
+                    const errorMessage = error?.message || "Something went wrong.";
+                    notificationAuth(".bc-authentication-model .step-sign-in", "error", errorMessage);
+                });
+                authModelLoadingOverlay.hide();
+                return; // Exit the function if there are errors
+            }
+
+            if (!customerData?.errors) {
+                //console.log('Sign In BC');
+                const customerResultObj = customerData?.data?.login?.customer;
+                const customerEmail = customerResultObj?.email;
+                const customerEntityId = customerResultObj?.entityId;
+                const customerFullName = customerResultObj?.firstName + " " + customerResultObj?.lastName;
+                //const formFields = customerResultObj?.formFields;
+
+                gtag("event", "Account_login", {
+                    "id": customerEntityId,
+                    "email": customerEmail,
+                    "name": customerFullName,
+                    "events": { "name": "Account_login" }
+                });
+                gtag("event", "Account login", {
+                    "id": customerEntityId,
+                    "email": customerEmail,
+                    "name": customerFullName,
+                    "events": { "name": "Account login" }
+                });
+
+                gtag("event", "login", {
+                    "user_id": customerEntityId,
+                    "id": customerEntityId,
+                    "email": customerEmail,
+                    "name": customerFullName,
+                    "events": { "name": "login" }
+                });
+                notificationAuth(".bc-authentication-model .step-sign-in", "success", "Sign in successful!");
+
+                const currentJWT = await fetch('/customer/current.jwt?app_client_id=dl7c39mdpul6hyc489yk0vzxl6jesyx', { method: 'GET', headers: { Accept: 'application/json', 'Content-Type': 'application/json' } })
+                const currentJWTResult = await currentJWT.json()
+
+                if (currentJWTResult?.token != "") {
+                    async function loginWithB2BToken() {
+                        const optionsB2BLogin = {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+                            body: `{"bcToken":"${currentJWTResult?.token}","customerId": ${customerEntityId},"storeHash":"{{settings.store_hash}}"}`
+                        };
+                        const response = await fetch(`https://api-b2b.bigcommerce.com/api/v2/login`, optionsB2BLogin);
+                        const data = await response.json();
+                        console.log('success Token');
+                        console.log(data);
+                        if (data?.code == 200) {
+                            const b2bCustomerToken = data?.data.token;
+                            window.localStorage.setItem("b2bTokenCustom", b2bCustomerToken);
+                            await window?.b2b?.utils?.user?.loginWithB2BStorefrontToken(b2bCustomerToken);
+                            window.location.reload();
+                        }else{
+                            window.location.reload();
+                        }
+                    }
+                    loginWithB2BToken();
+                }else{
+                    window.location.reload();
+                }
+            }
+
+        } catch (error) {
+            console.error(error);
+            notificationAuth(".bc-authentication-model .step-sign-in", "error", "Something went wrong.");
+        }
+    }
+
+    //View Password
+    $(".view-password-action").on("click", '.view-password-icon', function () {
+        const inputEle = $(this).parent().find("input");
+        if (inputEle.attr('type') == "password") {
+            inputEle.attr('type', 'text');
+            $(this).addClass('is-active');
+        } else {
+            inputEle.attr('type', 'password');
+            $(this).removeClass('is-active');
+        }
+    });
+
+
+    function IsOnlyNumValue(e) {
+        const unicode = e.keyCode ? e.keyCode : e.charCode;
+        if ((unicode >= 48 && unicode <= 57)) { return true; }
+        else { return false; }
+    }
+
+    function navigateSignIn() {
+        $(".bc-authentication-model").css('display', 'flex');
+        $(".auth-model-loadingOverlay").hide();
+        $('.action-company-step-1-back').hide();
+        signInStep1.show();
+        companyCreateStep0.hide();
+    }
+    function navigateCreateCompany() {
+        $(".bc-authentication-model").css('display', 'flex');
+        $(".cb2b-step-0-loadingOverlay").hide();
+        $(".company-not-found-message").hide();
+        $(".company-create-b2b-step-0 .alertBox").hide();
+        loadCustomerRegionField();
+        signInStep1.hide();
+        companyCreateStep0.show();
+    }
+    function backB2BAccount() {
+        signInStep1.hide();
+        companyCreateStep0.hide();
+        companyCreateStep1.show();
+        companyCreateStep2.hide();
+        companyCreateStep3.hide();
+    }
+
+    function backB2BLocation() {
+        companyCreateStep0.hide();
+        companyCreateStep1.hide();
+        companyCreateStep2.hide();
+        companyCreateStep3.hide();
+        companiesFound.hide();
+        const companyId = parseInt($(".step-companies-list input:checked").val());
+        if (companyId > 0) {
+            companiesFound.show();
+        } else {
+            companyCreateStep2.show();
+        }
+    }
+
+    //getCountrys
+    async function getCountrys() {
+        const resCountrys = await fetch('/internalapi/v1/store/countries')
+        const resultCountry = await resCountrys.json()
+        let drpHtml = `<option value="">{{{lang 'b2b.select'}}}</option>`;
+        resultCountry?.data?.map((ls) => {
+            drpHtml += `<option value="${ls?.code}">${ls?.name}</option>`;
+        });
+        $("#cb2b-address-country option").remove();
+        $("#cb2b-address-country").append(drpHtml)
+    }
+
+    $('.company-create-b2b-step-2').on('change', '#cb2b-address-country', function () {
+        const countryCode = $(this).val();
+        const country = $('#cb2b-address-country option[value="' + countryCode + '"]').text();
+
+        if (country != "") {
+            const state_input = `<input type="text" class="form-input drp_txt_state_province" id="cb2b-address-state" required onkeypress="return /[a-z]/i.test(event.key)" />`;
+            $.ajax({
+                url: "/remote/v1/country-states/" + country,
+                type: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    const states = res.data.states;
+                    if (states.length > 0) {
+                        let state_option = `<option value="">{{{lang 'b2b.choose_state'}}}</option>`;
+                        for (let si = 0; si < states.length; si++) {
+                            const state_name = states[si].name
+                            state_option += `<option value="${state_name}">${state_name}</option>`;
+                        }
+                        const state_select = `<select id="cb2b-address-state" class="form-select drp_txt_state_province" required>${state_option}</select>`;
+                        $(".div_state_province #cb2b-address-state").remove();
+                        $(".div_state_province").html(state_select);
+                    } else {
+                        $(".div_state_province #cb2b-address-state").remove();
+                        $(".div_state_province").html(state_input);
+                    }
+                }
+            });
+        }
+    });
+
+
+    $("#login-email").on("keyup", function () {
+        $(".bc-authentication-model .step-sign-in .alertBox").hide();
+    });
+
+    $(".model-login-form").on("submit", async function (e) {
+        e.preventDefault();
+
+        if (this.dataset.passwordlessSubmitting === "true") {
+            return;
+        }
+
+        $(".alertBox").hide();
+        const emailInput = this.querySelector("#login-email");
+        const submitButton = this.querySelector('[type="submit"]');
+        const email = emailInput.value.trim();
+
+        emailInput.value = email;
+
+        if (!email) {
+            notificationAuth(".bc-authentication-model .step-sign-in", "error", "Email address is required.");
+            emailInput.focus();
+            return;
+        }
+
+        if (!emailInput.checkValidity()) {
+            notificationAuth(".bc-authentication-model .step-sign-in", "error", "Please enter a valid email address.");
+            emailInput.reportValidity();
+            return;
+        }
+
+        authModelLoadingOverlay.show();
+        this.dataset.passwordlessSubmitting = "true";
+        submitButton.disabled = true;
+
+        try {
+            const csrfCookie = document.cookie
+                .split("; ")
+                .find((cookie) => cookie.startsWith("SF-CSRF-TOKEN="));
+            const csrfToken = csrfCookie
+                ? decodeURIComponent(csrfCookie.substring(csrfCookie.indexOf("=") + 1))
+                : "";
+            const headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+            };
+
+            if (csrfToken) {
+                headers["X-Sf-Csrf-Token"] = csrfToken;
+            }
+
+            const response = await fetch("/login.php?action=passwordless_login", {
+                method: "POST",
+                credentials: "same-origin",
+                headers,
+                body: JSON.stringify({
+                    email,
+                    redirect_url: "/",
+                }),
+            });
+            const contentType = response.headers.get("content-type") || "";
+            const result = contentType.includes("application/json")
+                ? await response.json()
+                : null;
+
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error("We could not find an account for that email address.");
+                }
+
+                if (response.status === 429) {
+                    throw new Error("Too many sign-in link requests. Please wait and try again.");
+                }
+
+                throw new Error(result?.error || "We could not send the sign-in link. Please try again.");
+            }
+
+            if (!result || !["sign_in", "reset_password"].includes(result.sent_email)) {
+                throw new Error("We could not confirm that the email was sent. Please try again.");
+            }
+
+            if (typeof window.gtag === "function") {
+                window.gtag("event", "Logins", {
+                    "Email": email,
+                    "email_type": result.sent_email,
+                    "page_url": window.location.href,
+                    "events": { "name": "Logins" }
+                });
+            }
+
+            const successMessage = result.sent_email === "reset_password"
+                ? "A password reset email has been sent. Please check your inbox and junk folder."
+                : "A sign-in link has been sent to your email address. This link expires in 15 minutes. If you don't see it, check your junk folder.";
+
+            notificationAuth(".bc-authentication-model .step-sign-in", "success", successMessage);
+            $(this).remove();
+        } catch (error) {
+            console.error("Passwordless login error:", error);
+            notificationAuth(
+                ".bc-authentication-model .step-sign-in",
+                "error",
+                error.message || "We could not send the sign-in link. Please try again."
+            );
+        } finally {
+            authModelLoadingOverlay.hide();
+            submitButton.disabled = false;
+            delete this.dataset.passwordlessSubmitting;
+        }
+    });
+
+
+    let createCompanyBody0 = [];
+    $(".form-company-b2b-step-0").on("submit", async function (e) {
+        e.preventDefault();
+
+        const requiredFields = this.querySelectorAll('input[required], select[required]');
+        for (const field of requiredFields) {
+            if (field && !field.reportValidity()) return false;
+        }
+
+        $(".cb2b-step-0-loadingOverlay").show();
+
+        try {
+            $(".alertBox").hide();
+            const companyAdminEmail = $("#cb2b-company-admin-email")?.val()?.trim();
+            const companyAdminFname = $("#cb2b-company-admin-fname")?.val()?.trim();
+            const companyAdminLname = $("#cb2b-company-admin-lname")?.val()?.trim();
+            const companyAdminRegion = $("#cb2b-company-admin-region option:selected")?.text()?.trim() || "";
+            const companyAdminBrands = Array.from(document.querySelectorAll('[data-customer-form-field^="Brand"] select'))
+                .map((select) => ({
+                    fieldEntityId: Number(select.dataset.fieldEntityId),
+                    fieldName: select.dataset.fieldLabel,
+                    optionEntityId: select.value === '' ? null : Number(select.value),
+                    value: select.options[select.selectedIndex]?.text || '',
+                }))
+                .filter((field) => field.optionEntityId !== null);
+            const validationsRes = await fetch(`${middleware_server}b2b/v1/validations-email.php`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', },
+                body: JSON.stringify({ email: companyAdminEmail }),
+            });
+
+            const validationsResult = await validationsRes?.json();
+            console.log('validationsResult')
+            console.log(validationsResult)
+
+            if (validationsResult?.status == true) {
+                notificationAuth(".bc-authentication-model .company-create-b2b-step-0", "error", isExitMessage);
+                createCompanyBody1 = [];
+                $('.form-company-b2b-step-0 .user_reset_password').show();
+                $(".company-not-found-message").hide();
+            } else {
+
+                const searchCompaniesRes = await fetch(`${middleware_server}b2b/v1/search-companies.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', },
+                    body: JSON.stringify({ email: companyAdminEmail }),
+                });
+                const searchCompaniesResult = await searchCompaniesRes?.json();
+                console.log('searchCompaniesResult')
+                console.log(searchCompaniesResult)
+
+                $('.user_reset_password').hide();
+                createCompanyBody0 = { companyAdminEmail, companyAdminFname, companyAdminLname, companyAdminRegion, companyAdminBrands };
+                companyCreateStep0.hide();
+                companyCreateStep2.hide();
+                companyCreateStep3.hide();
+
+                console.log('createCompanyBody0')
+                console.log(createCompanyBody0)
+
+                if (searchCompaniesResult?.status == true) {
+                    companiesFound.show();
+                    companyCreateStep1.hide();
+                    $(".company-create-b2b-step-1-companies .step-companies-list").html('');
+                    if (searchCompaniesResult?.data) {
+                        let companyHtml = "";
+                        searchCompaniesResult?.data?.forEach(company => {
+                            companyHtml += `
+                        <label for="stepCompanyId-${company?.companyId}">
+                            <p><b>${company?.companyName}</b></p>
+                            <p>${company?.companyEmail}</p>
+                            <p>${company?.addressLine1}</p>
+                            <p>${company?.city}, ${company?.state}, ${company?.country} - ${company?.zipCode}</p>
+                            <input type="radio" name="stepCompanyId" id="stepCompanyId-${company?.companyId}" value="${company?.companyId}" />
+                        </label>
+                    `;
+                        });
+                        $(".company-create-b2b-step-1-companies .step-companies-list").html(companyHtml);
+                    }
+
+                } else {
+                    notificationAuth(".bc-authentication-model .company-create-b2b-step-0", "error", "We cannot find company details in our records. Kindly contact on <a style='color: blue;' href='mailto:elcsupport@twelvenyc.com'>elcsupport@twelvenyc.com</a> email address for submitting your sign up request.");
+                    companyCreateStep0.show();
+                    //companiesFound.hide();
+                    //companyCreateStep1.show();
+                }
+
+            }
+
+        } catch (error) {
+
+            $('.user_reset_password').hide();
+            createCompanyBody0 = [];
+            console.log('error')
+            console.log(error)
+            notificationAuth(".bc-authentication-model .company-create-b2b-step-0", "error", error?.message);
+            //notificationAuth(".bc-authentication-model .company-create-b2b-step-0", "error", `{{{lang 'b2b.generic_error'}}}`);
+        }
+        $(".cb2b-step-0-loadingOverlay").hide();
+
+    });
+
+    let createCompanyBody1 = [];
+    $(".form-company-b2b-step-1").on("submit", async function (e) {
+        e.preventDefault();
+
+        if (createCompanyBody0?.companyAdminEmail == "") {
+            window.location.reload();
+            return false;
+        }
+
+        $(".cb2b-step-1-loadingOverlay").show();
+
+        try {
+            $(".alertBox").hide();
+            const companyName = $("#cb2b-company-name")?.val()?.trim();
+            const companyType = $("#cb2b-business-type")?.val()?.trim();
+            const companyEmail = $("#cb2b-company-email")?.val()?.trim();
+            const companyPhone = $("#cb2b-company-phone")?.val()?.trim();
+
+            const validationsRes = await fetch(`${middleware_server}b2b/v1/validations-email.php`, {
+                method: 'POST',
+                body: JSON.stringify({ email: companyEmail })
+            });
+            const validationsResult = await validationsRes?.json();
+
+            if (validationsResult?.status == true) {
+                notificationAuth(".bc-authentication-model .company-create-b2b-step-1", "error", isExitMessage);
+                createCompanyBody1 = [];
+                $('.form-company-b2b-step-1 .user_reset_password').show();
+            } else {
+                getCountrys();
+                createCompanyBody1 = { companyName, companyType, companyEmail, companyPhone };
+                companyCreateStep0.hide();
+                companyCreateStep1.hide();
+                companyCreateStep2.show();
+                companyCreateStep3.hide();
+                $('.user_reset_password').hide();
+                console.log('createCompanyBody1')
+                console.log(createCompanyBody1)
+            }
+
+        } catch (error) {
+
+            createCompanyBody1 = [];
+            $('.user_reset_password').hide();
+
+            console.log('error')
+            console.log(error)
+            notificationAuth(".bc-authentication-model .company-create-b2b-step-1", "error", `{{{lang 'b2b.generic_error'}}}`);
+
+        }
+        $(".cb2b-step-1-loadingOverlay").hide();
+
+    });
+
+    let createCompanyBody2 = [];
+    $(".form-company-b2b-step-2").on("submit", async function (e) {
+        e.preventDefault();
+
+        if (createCompanyBody0?.companyAdminEmail == "" || createCompanyBody1?.companyEmail == "") {
+            window.location.reload();
+            return false;
+        }
+
+        $(".cb2b-step-2-loadingOverlay").show();
+
+        try {
+            $(".alertBox").hide();
+            const companyCountry = $("#cb2b-address-country")?.val()?.trim();
+            const companyCountryTitle = $('#cb2b-address-country option[value="' + companyCountry + '"]')?.text()?.trim();
+            const companyLine1 = $("#cb2b-address-line1")?.val()?.trim();
+            const companyLine2 = $("#cb2b-address-line2")?.val()?.trim();
+            const companyCity = $("#cb2b-address-city")?.val()?.trim();
+            const companyState = $("#cb2b-address-state")?.val()?.trim();
+            const companyZip = $("#cb2b-address-zip")?.val()?.trim();
+
+            console.log('companyCountry')
+            console.log(companyCountry)
+            console.log('companyCountryTitle')
+            console.log(companyCountryTitle)
+
+            createCompanyBody2 = { companyCountryTitle, companyLine1, companyLine2, companyCity, companyState, companyZip };
+
+            companyCreateStep0.hide();
+            companyCreateStep1.hide();
+            companyCreateStep2.hide();
+            companyCreateStep3.show();
+
+            console.log('createCompanyBody2')
+            console.log(createCompanyBody2)
+
+        } catch (error) {
+
+            createCompanyBody2 = [];
+            console.log('error')
+            console.log(error)
+            notificationAuth(".bc-authentication-model .company-create-b2b-step-2", "error", `{{{lang 'b2b.generic_error'}}}`);
+
+        }
+        $(".cb2b-step-2-loadingOverlay").hide();
+
+    });
+
+    $(".form-company-b2b-step-3").on("submit", async function (e) {
+        e.preventDefault();
+
+        if (createCompanyBody0?.companyAdminEmail == "" || createCompanyBody1?.companyEmail == "") {
+            window.location.reload();
+            return false;
+        }
+
+        $(".cb2b-step-3-loadingOverlay").show();
+
+        try {
+            $(".alertBox").hide();
+
+            const passwordValidation = /^(?=\S*[a-z])(?=\S*\d)(?=\S*[^\w\s])\S{8,}$/;
+
+            const companyNewPassword = $("#cb2b-account-new-password")?.val()?.trim();
+            const companyConfirmPassword = $("#cb2b-account-confirm-password")?.val()?.trim();
+            const companyChkNewsletter = $("#cb2b-account-chk-newsletter")?.prop('checked')
+
+            if (!passwordValidation.test(companyNewPassword)) {
+                notificationAuth(".bc-authentication-model .company-create-b2b-step-3", "error", `{{{lang 'b2b.password_requirements'}}}`);
+                $(".cb2b-step-3-loadingOverlay").hide();
+                return false;
+            }
+
+            if (companyNewPassword === companyConfirmPassword) {
+
+
+                const companyId = parseInt($(".step-companies-list input:checked").val());
+
+                console.log('companyId')
+                console.log(companyId)
+
+                if (companyId > 0) {
+
+                    //Create User
+                    const finalBody = {
+                        ...createCompanyBody0,
+                        companyNewPassword,
+                        companyChkNewsletter,
+                        companyId
+                    }
+
+                    const userReq = await fetch(`${middleware_server}b2b/v1/create-a-user.php`, {
+                        method: 'POST',
+                        body: JSON.stringify(finalBody)
+                    });
+                    const userResult = await userReq?.json();
+
+                    if (userResult?.status == true) {
+
+                        try {
+                            customerSignIn(createCompanyBody0?.companyAdminEmail, companyNewPassword, "new_customer");
+                        } catch (error) {
+                            console.log('Not Login')
+                        }
+
+                        notificationAuth(".bc-authentication-model .company-create-b2b-step-3", "success", `{{{lang 'b2b.account_created_verify'}}}`);
+                        $(".form-company-b2b-step-3 .form-content").remove();
+                        $(".form-company-b2b-step-3 .form-actions").html(`<a class="button buttonSecondary" href="/shop/">{{{lang 'b2b.shop_now'}}}</a>`);
+                        $(".alertBox-close, .bc-auth-close").hide();
+                        $(".cb2b-step-3-loadingOverlay").hide();
+                        $(".company-create-b2b-step-3 .step-counters .step-counter:last-child").addClass("is-done");
+
+                    } else {
+                        notificationAuth(".bc-authentication-model .company-create-b2b-step-3", "error", userResult?.message);
+                        $(".user-step-1-loadingOverlay").hide();
+                        return false;
+                    }
+
+                } else {
+                    //Create Company
+                    const finalBody = {
+                        ...createCompanyBody0,
+                        ...createCompanyBody1,
+                        ...createCompanyBody2,
+                        companyNewPassword,
+                        companyChkNewsletter
+                    }
+                    console.log('finalBody')
+                    console.log(finalBody)
+
+
+                    const companyReq = await fetch(`${middleware_server}b2b/v1/company-create.php`, {
+                        method: 'POST',
+                        body: JSON.stringify(finalBody)
+                    });
+                    const companyResult = await companyReq?.json();
+
+                    console.log('companyResult')
+                    console.log(companyResult)
+
+                    if (companyResult?.status == true) {
+
+                        try {
+                            customerSignIn(createCompanyBody0?.companyAdminEmail, companyNewPassword, "new_customer");
+                        } catch (error) {
+                            console.log('Not Login')
+                        }
+
+                        notificationAuth(".bc-authentication-model .company-create-b2b-step-3", "success", `{{{lang 'b2b.account_created_welcome'}}}`);
+                        $(".form-company-b2b-step-3 .form-content").remove();
+                        $(".form-company-b2b-step-3 .form-actions").html(`<a class="button buttonSecondary" href="/shop/">{{{lang 'b2b.shop_now'}}}</a>`);
+                        $(".alertBox-close, .bc-auth-close").hide();
+                        $(".cb2b-step-3-loadingOverlay").hide();
+                        $(".company-create-b2b-step-3 .step-counters .step-counter:last-child").addClass("is-done");
+
+                    } else {
+                        notificationAuth(".bc-authentication-model .company-create-b2b-step-3", "error", companyResult?.message);
+                        $(".cb2b-step-3-loadingOverlay").hide();
+                        return false;
+                    }
+
+                }
+
+            } else {
+                notificationAuth(".bc-authentication-model .company-create-b2b-step-3", "error", `{{{lang 'b2b.password_mismatch'}}}`);
+                $(".cb2b-step-3-loadingOverlay").hide();
+                return false;
+            }
+
+
+        } catch (error) {
+            console.log('error')
+            console.log(error)
+            notificationAuth(".bc-authentication-model .company-create-b2b-step-3", "error", `{{{lang 'b2b.generic_error'}}}`);
+        }
+        $(".cb2b-step-3-loadingOverlay").hide();
+
+    });
+
+    $(".step-companies-list").on("click", "label", function () {
+        $(".action-b2b-company-selectd").removeAttr("disabled");
+    });
+
+    $(".user-create-company-found").on("click", ".btn-cb2b-user-cfound-Continue", function () {
+        userCreateStep0.show();
+    });
+
+    $(".action-b2b-company-selectd").on("click", function () {
+        companiesFound.hide();
+        companyCreateStep3.show();
+    });
+
+
+    function backCompanyUserInfo() {
+        $(".cb2b-step-0-loadingOverlay").hide();
+        companyCreateStep0.show();
+        companyCreateStep1.hide();
+        companyCreateStep2.hide();
+        companyCreateStep3.hide();
+        companiesFound.hide();
+        $(".action-b2b-company-selectd").attr("disabled", "disabled");
+        $(".company-create-b2b-step-1-companies .step-companies-list").html('');
+    }
+
+    $(".customer-signin-link").on("click", function () {
+        $(".model-login-with-password-form").slideUp();
+        $(".model-login-form").slideDown();
+    });
+    $(".customer-signin-password").on("click", function () {
+        $(".model-login-with-password-form").slideDown();
+        $(".model-login-form").slideUp();
+    });
+
+     $(".model-login-with-password-form").on("submit", async function (e) {
+        e.preventDefault();
+        authModelLoadingOverlay.show();
+        $(".alertBox").hide();
+        const email = $("#login-email-wp").val().trim();
+        const password = $("#login-password-wp").val().trim();
+        try {
+            customerSignIn(email, password, 'existing');            
+        } catch (error) {
+            console.log('error')
+            console.log(error)
+            notificationAuth(".bc-authentication-model .step-sign-in","error","Something went wrong..");
+            authModelLoadingOverlay.hide();
+        }
+    });
+
+
+</script>
+
+

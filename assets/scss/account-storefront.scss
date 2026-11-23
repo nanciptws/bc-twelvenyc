@@ -1,0 +1,329 @@
+.account-policy-loading .twelve-desktop-menu-slot > .twelve-navigation,
+.account-policy-loading .twelve-mobile-drawer .twelve-navigation,
+.account-policy-loading .twelve-category-page .productGrid > .product,
+.account-policy-loading .twelve-product-page > div,
+.account-policy-loading [data-cart-content] {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.account-policy-loading .twelve-desktop-menu-slot,
+.account-policy-loading .twelve-category-page .productGrid {
+    position: relative;
+}
+
+.account-policy-loading .twelve-category-page .productGrid {
+    min-height: 18.5rem;
+}
+
+// Direct PDP and brand URLs must not reveal restricted content while the
+// asynchronous B2B policy and Storefront GraphQL checks are running.
+.account-policy-loading body.page_type__product .twelve-product-page,
+.account-policy-loading body.page_type__brand .twelve-category-page {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.account-policy-page-skeleton {
+    display: none;
+    margin: 3rem auto;
+    max-width: 86rem;
+    padding: 0 1rem;
+    width: 100%;
+}
+
+.account-policy-loading .account-policy-page-skeleton {
+    display: grid;
+}
+
+.account-policy-page-skeleton--product {
+    gap: 3rem;
+    grid-template-columns: minmax(0, 1.15fr) minmax(18rem, .85fr);
+}
+
+.account-policy-page-skeleton__media,
+.account-policy-page-skeleton--brand > span,
+.account-policy-page-skeleton__details i {
+    animation: account-policy-surface-shimmer 1.5s linear infinite;
+    background: linear-gradient(100deg, #eceae6 30%, #faf9f6 48%, #eceae6 66%);
+    background-size: 240% 100%;
+    display: block;
+}
+
+.account-policy-page-skeleton__media {
+    aspect-ratio: 1 / .72;
+}
+
+.account-policy-page-skeleton__details {
+    padding-top: 1rem;
+}
+
+.account-policy-page-skeleton__details i {
+    height: .75rem;
+    margin-bottom: 1.25rem;
+    width: 92%;
+}
+
+.account-policy-page-skeleton__details i:first-child {
+    height: 2rem;
+    width: 72%;
+}
+
+.account-policy-page-skeleton__details i:nth-child(3) { width: 58%; }
+.account-policy-page-skeleton__details i:nth-child(4) { height: 3rem; margin-top: 2rem; }
+.account-policy-page-skeleton__details i:last-child { width: 45%; }
+
+.account-policy-page-skeleton--brand {
+    gap: 1.5rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.account-policy-page-skeleton--brand > span {
+    animation-name: account-policy-card-shimmer;
+    background-image:
+        linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .72) 48%, transparent 66%),
+        linear-gradient(#eceae6, #eceae6),
+        linear-gradient(#e5e3de, #e5e3de),
+        linear-gradient(#efede9, #efede9);
+    background-position: 120% 0, 0 0, 0 calc(100% - 1.5rem), 0 100%;
+    background-repeat: no-repeat;
+    background-size: 240% 100%, 100% calc(100% - 4rem), 72% .7rem, 48% .55rem;
+    height: 24rem;
+}
+
+@keyframes account-policy-card-shimmer {
+    from { background-position-x: 120%, 0, 0, 0; }
+    to { background-position-x: -120%, 0, 0, 0; }
+}
+
+@keyframes account-policy-surface-shimmer {
+    from { background-position-x: 120%; }
+    to { background-position-x: -120%; }
+}
+
+.account-policy-loading .twelve-category-toolbar__count,
+.account-policy-loading .twelve-category-load-more__count,
+.account-policy-loading .twelve-category-load-more__track,
+.account-policy-loading [data-twelve-load-more-button] {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.account-policy-loading .twelve-desktop-menu-slot::after,
+.account-policy-loading .twelve-category-page .productGrid::before,
+.account-policy-loading .twelve-category-page .productGrid::after {
+    content: "";
+    display: block;
+}
+
+.account-policy-loading .twelve-desktop-menu-slot::after {
+    animation: account-policy-shimmer 1.5s linear infinite;
+    background-image:
+        linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.78) 48%, transparent 100%),
+        linear-gradient(#e8e6e1, #e8e6e1),
+        linear-gradient(#e8e6e1, #e8e6e1),
+        linear-gradient(#e8e6e1, #e8e6e1),
+        linear-gradient(#e8e6e1, #e8e6e1);
+    background-position: -120% 0, 0 50%, 7.5rem 50%, 13rem 50%, 20rem 50%;
+    background-repeat: no-repeat;
+    background-size: 45% 100%, 5.5rem .65rem, 3.5rem .65rem, 5rem .65rem, 4.5rem .65rem;
+    height: 1.5rem;
+    left: 0;
+    pointer-events: none;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: 27rem;
+    width: 100%;
+}
+
+.account-policy-loading .twelve-category-page .productGrid::before {
+    background-color: transparent;
+    background-image:
+        linear-gradient(90deg, #eceae6 0 calc(100% - 1.25rem), transparent calc(100% - 1.25rem)),
+        linear-gradient(90deg, #e5e3de 0 72%, transparent 72%),
+        linear-gradient(90deg, #efede9 0 48%, transparent 48%);
+    background-position: 0 0, 0 15.25rem, 0 17rem;
+    background-repeat: repeat-x;
+    background-size: 25% 13.75rem, 25% .7rem, 25% .55rem;
+    height: 18.5rem;
+    inset: 0 0 auto;
+    position: absolute;
+    width: 100%;
+    z-index: 1;
+}
+
+.account-policy-loading .twelve-category-page .productGrid::after {
+    animation: account-policy-shimmer 1.5s linear infinite;
+    background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, .82) 48%, transparent 100%);
+    height: 18.5rem;
+    inset: 0 0 auto;
+    pointer-events: none;
+    position: absolute;
+    width: 100%;
+    z-index: 2;
+}
+
+.account-policy-ready .twelve-desktop-menu-slot > .twelve-navigation,
+.account-policy-ready .twelve-mobile-drawer .twelve-navigation,
+.account-policy-ready .twelve-category-page .productGrid > .product,
+.account-policy-ready .twelve-product-page > div,
+.account-policy-ready [data-cart-content] {
+    opacity: 1;
+    transition: opacity 160ms ease;
+}
+
+.account-policy-ready .twelve-category-toolbar__count,
+.account-policy-ready .twelve-category-load-more__count,
+.account-policy-ready .twelve-category-load-more__track,
+.account-policy-ready [data-twelve-load-more-button] {
+    opacity: 1;
+    transition: opacity 160ms ease;
+    visibility: visible;
+}
+
+.account-policy-ready body.page_type__product .twelve-product-page,
+.account-policy-ready body.page_type__brand .twelve-category-page {
+    opacity: 1;
+    transition: opacity 160ms ease;
+    visibility: visible;
+}
+
+// Product-level catalogues are a fixed account assortment. Facets, density
+// controls and sorting would expose options from the unfiltered BC catalogue.
+.account-policy-product #faceted-search-container,
+.account-policy-product [data-category-columns],
+.account-policy-product [data-sort-by="product"],
+.account-policy-product [data-twelve-mobile-sort-open],
+.account-policy-product .twelve-mobile-sort-sheet,
+.account-policy-product .twelve-mobile-sheet-scrim {
+    display: none !important;
+}
+
+// BigCommerce replaces the facet markup during AJAX filtering. Keep the
+// enforced Brand facet hidden at paint time so it cannot briefly flash before
+// the account-policy JavaScript processes the replacement HTML.
+.account-policy-brand body.page_type__category .accordion-block:has([accordion-title="brand"]),
+.account-policy-brand body.page_type__search .accordion-block:has([accordion-title="brand"]) {
+    display: none !important;
+}
+
+// Selected facets are also replaced by BigCommerce's AJAX response. Hide the
+// enforced brand chips before that replacement can paint. Keep the selected
+// filters row only when the shopper has selected another facet such as
+// Material or Price.
+.account-policy-brand body.page_type__category [data-account-selected-facet="brand"],
+.account-policy-brand body.page_type__search [data-account-selected-facet="brand"],
+.account-policy-brand body.page_type__category .facetedSearch-refineFilters:not(:has(.inlineList li:not([data-account-selected-facet="brand"]))),
+.account-policy-brand body.page_type__search .facetedSearch-refineFilters:not(:has(.inlineList li:not([data-account-selected-facet="brand"]))) {
+    display: none !important;
+}
+
+[data-account-restricted],
+.account-policy-hidden,
+.account-policy-category-hidden {
+    display: none !important;
+}
+
+.account-policy-pending {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+}
+
+.account-policy-message {
+    margin: 3rem auto;
+    max-width: 48rem;
+    padding: 3rem 1.5rem;
+    text-align: center;
+}
+
+.account-policy-message h1 { margin-bottom: 1rem; }
+.account-policy-message .button { margin-top: 1rem; }
+
+.account-policy-alert {
+    background: #f7f3ea;
+    border: 1px solid currentColor;
+    margin-bottom: 1.5rem;
+    padding: 1rem 1.25rem;
+}
+
+.account-policy-restricted-line { opacity: .58; background: #ffa5a5; * { background: transparent !important; } }
+
+@keyframes account-policy-shimmer {
+    from { background-position-x: -120%, 0, 8.5rem, 15rem, 23rem; }
+    to { background-position-x: 220%, 0, 8.5rem, 15rem, 23rem; }
+}
+
+@media (max-width: 800px) {
+    .account-policy-loading .twelve-category-page .productGrid {
+        min-height: 16.5rem;
+    }
+
+    .account-policy-loading .twelve-category-page .productGrid::before {
+        background-size: 50% 12rem, 50% .7rem, 50% .55rem;
+        background-position: 0 0, 0 13.25rem, 0 15rem;
+        height: 16.5rem;
+    }
+
+    .account-policy-loading .twelve-category-page .productGrid::after {
+        height: 16.5rem;
+    }
+
+    .account-policy-page-skeleton--product {
+        gap: 1.5rem;
+        grid-template-columns: 1fr;
+    }
+
+    .account-policy-page-skeleton--brand {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 991px) {
+    .account-policy-loading .twelve-desktop-menu-slot::after {
+        display: none;
+    }
+
+    .account-policy-loading .twelve-mobile-drawer.is-open::before {
+        animation: account-policy-mobile-shimmer 1.5s linear infinite;
+        background-image:
+            linear-gradient(90deg, transparent, rgba(255, 255, 255, .85), transparent),
+            repeating-linear-gradient(180deg, #e9e7e2 0, #e9e7e2 .75rem, transparent .75rem, transparent 3.25rem);
+        background-position: -120% 0, 0 0;
+        background-repeat: no-repeat;
+        background-size: 45% 100%, 72% 100%;
+        content: "";
+        display: block;
+        height: 16rem;
+        margin: 6rem 1.5rem 0;
+        width: calc(100% - 3rem);
+    }
+}
+
+@keyframes account-policy-mobile-shimmer {
+    from { background-position-x: -120%, 0; }
+    to { background-position-x: 220%, 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .account-policy-loading .twelve-desktop-menu-slot::after,
+    .account-policy-loading .twelve-mobile-drawer.is-open::before,
+    .account-policy-loading .twelve-category-page .productGrid::after,
+    .account-policy-page-skeleton__media,
+    .account-policy-page-skeleton--brand > span,
+    .account-policy-page-skeleton__details i { animation: none; }
+    .account-policy-ready .twelve-desktop-menu-slot > .twelve-navigation,
+    .account-policy-ready .twelve-mobile-drawer .twelve-navigation,
+    .account-policy-ready .twelve-category-page .productGrid > .product,
+    .account-policy-ready .twelve-product-page > div,
+    .account-policy-ready [data-cart-content],
+    .account-policy-ready .twelve-category-toolbar__count,
+    .account-policy-ready .twelve-category-load-more__count,
+    .account-policy-ready .twelve-category-load-more__track,
+    .account-policy-ready [data-twelve-load-more-button],
+    .account-policy-ready body.page_type__product .twelve-product-page,
+    .account-policy-ready body.page_type__brand .twelve-category-page { transition: none; }
+}

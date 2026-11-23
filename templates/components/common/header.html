@@ -1,0 +1,40 @@
+<a href="#main-content" class="skip-to-main-link">Skip to main content</a>
+{{#if banners.top}}
+<div class="banners" data-banner-location="top">
+    {{#each (limit banners.top_metadata 1)}}
+    <div class="banner" data-event-type="promotion" data-entity-id="{{this.id}}" data-name="{{this.banner-name}}" data-position="{{this.location}}" data-banner-id="{{this.banner-name}}">
+        <div data-event-type="promotion-click">
+            {{{this.content}}}
+        </div>
+    </div>
+    {{/each}}
+</div>
+{{/if}}
+<header class="header twelve-header" role="banner">
+    {{> components/common/twelve-announcement}}
+    <div class="twelve-masthead">
+    <div class="twelve-desktop-menu-slot" data-twelve-desktop-menu-slot>
+        {{> components/common/twelve-navigation}}
+    </div>
+    <a href="#menu" class="mobileMenu-toggle" data-mobile-menu-toggle="menu" aria-label="Toggle menu" aria-expanded="false" aria-controls="menu">
+        <span class="mobileMenu-toggleIcon">Toggle menu</span>
+    </a>
+    {{> components/common/navigation}}
+
+    {{#if page_type '===' 'default'}}
+        <h1 class="header-logo header-logo--{{theme_settings.logo-position}}">
+            {{> components/common/store-logo}}
+        </h1>
+    {{else}}
+        <div class="header-logo header-logo--{{theme_settings.logo-position}}">
+            {{> components/common/store-logo}}
+        </div>
+    {{/if}}
+    </div>
+    <div class="navPages-container twelve-mobile-drawer" id="menu" data-menu role="dialog" aria-modal="true" aria-label="Menu">
+        {{> components/common/navigation-menu}}
+    </div>
+    {{{region name="header_navigation_bottom--global"}}}
+</header>
+{{{region name="header_bottom--global"}}}
+{{{region name="header_bottom"}}}

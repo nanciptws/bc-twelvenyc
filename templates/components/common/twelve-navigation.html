@@ -1,0 +1,67 @@
+<nav class="twelve-navigation" aria-label="{{lang 'header.navigation.primary'}}">
+    <ul class="twelve-nav-list">
+        {{#each categories}}
+            <li class="twelve-nav-item" nav-item="{{snakecase (lowercase name)}}" data-account-category-id="{{id}}"{{#if name '===' 'Brands'}} data-account-brands-menu{{/if}}>
+                {{#if name '===' 'Brands'}}
+                    {{#if ../shop_by_brand}}
+                        <details class="twelve-menu">
+                            <summary>{{name}}<span class="twelve-chevron" aria-hidden="true"></span></summary>
+                            <div class="twelve-mega">
+                                <div class="twelve-mega-inner twelve-mega-brands">
+                                    <ul class="twelve-brand-list" data-alphabetize-brands>
+                                        {{#each ../shop_by_brand}}<li><a href="{{url}}" data-account-brand-id="{{id}}">{{name}}</a></li>{{/each}}
+                                    </ul>
+                                    <aside class="twelve-mega-all twelve-mega-brand-promo">
+                                        <span class="twelve-eyebrow">{{lang 'header.navigation.brand_heading'}}</span>
+                                        <p>{{lang 'header.navigation.brand_description'}}</p>
+                                        <a class="twelve-text-link" href="/brands/">{{lang 'header.navigation.browse_all_products'}} <span aria-hidden="true">&rarr;</span></a>
+                                    </aside>
+                                </div>
+                            </div>
+                        </details>
+                    {{else}}
+                        <a class="twelve-nav-link" href="{{url}}">{{name}}</a>
+                    {{/if}}
+                {{else}}
+                    {{#if children}}
+                        <details class="twelve-menu">
+                            <summary>{{name}}<span class="twelve-chevron" aria-hidden="true"></span></summary>
+                            <div class="twelve-mega">
+                                <div class="twelve-mega-inner">
+                                    {{#each children}}
+                                        <details class="twelve-mega-column twelve-category-group" data-account-category-id="{{id}}">
+                                            <summary><a href="{{url}}" data-account-category-id="{{id}}">{{name}}</a><span class="twelve-plus" aria-hidden="true"></span></summary>
+                                            <ul>
+                                                <li class="twelve-category-all"><a href="{{url}}">{{lang 'header.navigation.shop_all' name=name}} &rarr;</a></li>
+                                                {{#each children}}<li>{{> components/common/twelve-category-link}}</li>{{/each}}
+                                            </ul>
+                                        </details>
+                                    {{/each}}
+                                    <aside class="twelve-mega-all">
+                                        <span class="twelve-eyebrow">{{lang 'header.navigation.everything_else'}}</span>
+                                        <a class="twelve-all-link" href="/shop/"><span>{{lang 'header.navigation.all_shop_categories'}}</span></a>
+                                    </aside>
+                                </div>
+                            </div>
+                        </details>
+                    {{else}}
+                        <a class="twelve-nav-link{{#if is_active}} activePage{{/if}}" href="{{url}}" data-account-category-id="{{id}}" {{#if is_active}}aria-current="page"{{/if}}>{{name}}</a>
+                    {{/if}}
+                {{/if}}
+            </li>
+        {{/each}}
+        {{#unless theme_settings.hide_content_navigation}}
+            {{#each pages}}<li class="twelve-nav-item" nav-item="{{snakecase (lowercase name)}}"><a class="twelve-nav-link" href="{{url}}">{{name}}</a></li>{{/each}}
+        {{/unless}}
+    </ul>
+    <div class="twelve-mobile-secondary">
+        {{#if customer}}
+            <a href="{{urls.account.index}}">{{lang 'header.navigation.my_account'}}</a>
+            <a href="{{urls.auth.logout}}">{{lang 'common.logout'}}</a>
+        {{else}}
+            <a href="{{urls.auth.login}}">{{lang 'common.login'}}</a>
+            <a class="open-signup-popup" href="javascript:void(0)">{{lang 'common.sign_up'}}</a>
+        {{/if}}
+        <a href="/?auth={{random 150 10}}-{{random 125 10}}#/shoppingLists">{{lang 'header.navigation.my_list'}}</a>
+    </div>
+</nav>

@@ -1,0 +1,249 @@
+<article
+    class="card
+    {{#if alternate}} card--alternate{{/if}}"
+    data-test="card-{{id}}"
+    data-event-type="{{event}}"
+    data-entity-id="{{id}}"
+    data-brand-id="{{brand.id}}"
+    data-position="{{position}}"
+    data-name="{{name}}"
+    data-product-category="
+    {{#each category}}
+        {{#if @last}}
+            {{this}}
+        {{else}}
+            {{this}},
+        {{/if}}
+    {{/each}}"
+    data-product-brand="{{brand.name}}"
+    data-product-price="
+    {{#or customer (unless settings.hide_price_from_guests)}}
+        {{#if price.with_tax}}
+            {{price.with_tax.value}}
+        {{else}}
+            {{price.without_tax.value}}
+        {{/if}}
+    {{else}}
+        {{lang 'common.login_for_pricing'}}
+    {{/or}}"
+>
+
+
+    {{!-- 
+    Add a sustainability ribbon to items whose specifications contain RPET, recycled, recyclable, or FSC.
+    --}}
+    {{#filter custom_fields '_spec_Material type' property='name'}}
+        <span class="is-sustainability-ribbon" hidden>{{value}}</span>
+    {{/filter}}
+    {{#filter custom_fields '_spec_Material type (detailed)' property='name'}}
+        <span class="is-sustainability-ribbon" hidden>{{value}}</span>
+    {{/filter}}
+    
+
+    <figure class="card-figure">
+
+        <a class="card-save action-b2b-wishlist"
+           data-b2b-product-id="{{id}}"
+           data-b2b-product-sku="{{sku}}"
+           href="#"
+           aria-label="Add {{name}} to shopping list"
+           aria-disabled="true"
+           hidden
+        >
+            <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.7-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+        </a>
+
+        {{!--
+            The Buyer Portal's BigCommerce PDP dialog reads the product from the
+            clicked element's closest configured product context instead of
+            shoppingList.itemFromCurrentPage. This hidden context lets its own
+            click handler add products opened from reusable cards.
+        --}}
+        <div class="b2b-card-product-context" hidden aria-hidden="true">
+            <span data-product-sku>{{sku}}</span>
+            <form data-cart-item-add>
+                <input name="product_id" type="hidden" value="{{id}}">
+                <input name="qty[]" type="hidden" value="1">
+            </form>
+            <span class="b2b-card-wishlist-hook"></span>
+        </div>
+
+        {{#unless hide_wishlist}}
+        {{#if settings.show_wishlist}}
+            <form action="{{add_to_wishlist_url}}" class="card-wishlist" data-wishlist-add method="post">
+                <a aria-controls="wishlist-dropdown-{{id}}"
+                   aria-expanded="false"
+                   aria-label="{{lang 'account.wishlists.add_item'}} {{name}}"
+                   class="card-save"
+                   data-dropdown="wishlist-dropdown-{{id}}"
+                   href="#"
+                >
+                    <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.7-7.5 1.1-1.1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+                </a>
+                <ul aria-hidden="true"
+                    class="dropdown-menu card-wishlist-menu"
+                    data-dropdown-content
+                    id="wishlist-dropdown-{{id}}"
+                >
+                    <li class="card-wishlist-menu__head">
+                        <span>{{lang 'account.wishlists.add_item'}}</span>
+                        <button aria-label="Close wish list menu" data-wishlist-mobile-close type="button">&times;</button>
+                    </li>
+                    {{#if wishlists}}
+                        {{#each wishlists}}
+                            <li>
+                                <input class="button {{#if this.num_items '!==' '0'}}button--has-items{{/if}}"
+                                       formaction="{{this.add_url}}&product_id={{../id}}"
+                                       type="submit"
+                                       value="{{this.name}}"
+                                >
+                            </li>
+                        {{/each}}
+                    {{else}}
+                        <li>
+                            <input class="button" type="submit" value="{{lang 'account.wishlists.add_to_default'}}">
+                        </li>
+                    {{/if}}
+                    <li>
+                        <a class="button"
+                           data-wishlist
+                           href="/wishlist.php?action=addwishlist&product_id={{id}}"
+                        >{{lang 'account.wishlists.create_new'}}</a>
+                    </li>
+                </ul>
+            </form>
+        {{/if}}
+        {{/unless}}
+        {{#if stock_level '===' 0}}
+            {{#if theme_settings.pdp_sold_out_label '===' ''}}
+                {{> components/products/product-badge
+                    badge-type='sold-out'
+                    badge_view=theme_settings.product_sold_out_badges
+                    badge_label=(lang "page_builder.pdp_sold_out_label")
+                }}
+            {{else}}
+                {{> components/products/product-badge
+                    badge-type='sold-out'
+                    badge_view=theme_settings.product_sold_out_badges
+                    badge_label=theme_settings.pdp_sold_out_label
+                }}
+            {{/if}}
+        {{else}}
+            {{#or price.sale_price_with_tax.value price.sale_price_without_tax.value}}
+                {{#if theme_settings.pdp_sale_badge_label '===' ''}}
+                    {{> components/products/product-badge
+                        badge-type='sale'
+                        badge_view=theme_settings.product_sale_badges
+                        badge_label=(lang "page_builder.pdp_sale_badge_label")
+                    }}
+                {{else}}
+                    {{> components/products/product-badge
+                        badge-type='sale'
+                        badge_view=theme_settings.product_sale_badges
+                        badge_label=theme_settings.pdp_sale_badge_label
+                    }}
+                {{/if}}
+            {{/or}}
+        {{/if}}
+
+        <a href="{{url}}"
+           class="card-figure__link"
+           aria-label="{{> components/products/product-info}}"
+           data-event-type="product-click"
+        >
+            <div class="card-img-container">
+                {{> components/common/responsive-img
+                    image=image
+                    class="card-image"
+                    fallback_size=theme_settings.productgallery_size
+                    lazyload=theme_settings.lazyload_mode
+                    default_image=theme_settings.default_image_product
+                }}
+            </div>
+        </a>
+
+        <figcaption class="card-figcaption">
+            <div class="card-figcaption-body">
+                {{#unless hide_product_quick_view}}
+                    {{#if theme_settings.show_product_quick_view}}
+                        <button type="button" class="button button--small card-figcaption-button quickview" data-event-type="product-click" data-product-id="{{id}}">{{lang 'products.quick_view'}}</button>
+                    {{/if}}
+                {{/unless}}
+                {{#if show_compare}}
+                    <label class="button button--small card-figcaption-button" for="compare-{{id}}">
+                        {{lang 'products.compare'}} <input type="checkbox" name="products[]" value="{{id}}" id="compare-{{id}}" data-compare-id="{{id}}">
+                    </label>
+                {{/if}}
+                {{#if show_cart_action}}
+                    {{#unless has_options}}
+                    {{#if add_to_cart_url}}
+                        <a href="{{add_to_cart_url}}" data-event-type="product-click" data-button-type="add-cart" class="button button--small card-figcaption-button">Quick add</a>
+                        <span class="product-status-message aria-description--hidden">{{lang 'category.add_cart_announcement'}}</span>
+                    {{/if}}
+                    {{/unless}}
+                    {{#if out_of_stock_message }}
+                        <a href="{{url}}" data-event-type="product-click" class="button button--small card-figcaption-button" data-product-id="{{id}}">{{out_of_stock_message}}</a>
+                    {{/if}}
+                {{/if}}
+            </div>
+        </figcaption>
+    </figure>
+
+    <div class="card-body">
+        {{#and rating show_rating}}
+            <p class="card-text" data-test-info-type="productRating">
+                <span class="rating--small">
+                    {{> components/products/ratings rating_target=name rating=rating}}
+                </span>
+            </p>
+        {{/and}}
+        {{#if brand.name}}
+            <p class="card-text card-brand" data-test-info-type="brandName">{{brand.name}}</p>
+        {{/if}}
+        <h3 class="card-title">
+            <a aria-label="{{> components/products/product-info}}"
+               href="{{url}}"
+               data-event-type="product-click"
+            >
+                {{name}}
+            </a>
+        </h3>
+        
+        {{#if sku}}
+        <span class="card-price-note" style="display:block;margin-top: 5px;">
+            Product ID: {{sku}}
+        </span>
+        {{/if}}
+
+        <div class="card-price-line">
+            <div class="card-text card-price" data-test-info-type="price">
+                {{#or customer (unless settings.hide_price_from_guests)}}
+                    {{> components/products/price price=price}}
+                {{else}}
+                    {{> components/common/login-for-pricing}}
+                {{/or}}
+            </div>
+        </div>
+            
+        {{#filter custom_fields '_sizefit_Dimensions (mm)' property='name'}}
+            <span class="card-price-note" style="display:block;">
+                Dimensions: {{value}}
+            </span>
+        {{else}}
+            {{#filter custom_fields "_sizefit_Definition of one 'unit'" property='name'}}
+            <span class="card-price-note" style="display:block;">
+                Definition of one 'unit': {{value}}
+            </span>
+            {{/filter}}
+        {{/filter}}
+
+        {{{region name="product_item_below_price"}}}
+        {{> components/products/bulk-discount-rates}}
+        {{#if theme_settings.show_featured_promotions}}
+            {{> components/products/promotion-callout
+                promotions=featured_promotions
+                mode="compact"
+            }}
+        {{/if}}
+    </div>
+</article>

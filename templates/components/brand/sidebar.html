@@ -1,0 +1,43 @@
+<nav>
+    {{#if brand.faceted_search_enabled}}
+        {{> components/faceted-search/index brand}}
+    {{else}}
+        {{#if shop_by_brand}}
+        <div class="sidebarBlock">
+            <h5 class="sidebarBlock-heading">{{lang 'brand.label'}}</h5>
+            <ul class="navList">
+                {{#each shop_by_brand}}
+                    <li class="navList-item">
+                        <a class="navList-action" href="{{url}}">{{name}}</a>
+                    </li>
+                {{/each}}
+                <li class="navList-item">
+                    <a class="navList-action" href="{{urls.brands}}">{{lang 'common.view_all'}}</a>
+                </li>
+            </ul>
+        </div>
+        {{/if}}
+    {{/if}}
+
+    <div class="twelve-category-toolbar__controls">
+        <div class="twelve-category-view" role="group" aria-label="Grid density">
+            <button class="twelve-category-view__button is-active" type="button" data-category-columns="4" aria-label="Four per row" aria-pressed="true">
+                <span></span><span></span><span></span><span></span>
+            </button>
+            <button class="twelve-category-view__button twelve-category-view__button--three" type="button" data-category-columns="3" aria-label="Three per row" aria-pressed="false">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+        {{> components/products/filter sort=pagination.brand.sort}}
+        <button type="button" class="twelve-mobile-sort-toggle" data-twelve-mobile-sort-open>Sort</button>
+    </div>
+
+    <button type="button" class="twelve-mobile-sheet-scrim" aria-label="Close filters and sorting" data-twelve-mobile-sheet-close></button>
+    <section class="twelve-mobile-sort-sheet" role="dialog" aria-modal="true" aria-label="Sort" aria-hidden="true">
+        <div class="twelve-mobile-filter-head">
+            <span>Sort</span>
+            <button type="button" aria-label="Close sort" data-twelve-mobile-sheet-close>&times;</button>
+        </div>
+        <div class="twelve-mobile-sort-list" data-twelve-mobile-sort-list></div>
+    </section>
+</nav>

@@ -1,0 +1,49 @@
+{{inject 'noCompareMessage' (lang 'compare.no_compare')}}
+
+{{#if category.products}}
+    <header class="twelve-category-toolbar" data-twelve-total-source="{{category.total_products}}">
+        <p class="twelve-category-toolbar__count">
+            Showing <span data-twelve-showing-count>{{category.count}}</span> of <span data-twelve-total-count>{{category.total_products}}</span>
+        </p>
+    </header>
+
+    <div data-list-name="Category: {{category.name}}" role="region" aria-label="{{lang 'category.product_label'}}">
+        {{#if theme_settings.product_list_display_mode '===' 'grid'}}
+            {{> components/products/grid products=category.products show_compare=category.show_compare theme_settings=theme_settings customer=customer wishlists=customer.wishlists hide_wishlist=true event="list" }}
+        {{else}}
+            {{> components/products/list products=category.products show_compare=category.show_compare theme_settings=theme_settings customer=customer event="list" }}
+        {{/if}}
+    </div>
+
+    <div class="twelve-category-load-more" data-twelve-load-more>
+        <p class="twelve-category-load-more__count"><span data-twelve-loaded-count>{{category.count}}</span> of <span data-twelve-load-total>{{category.total_products}}</span> products</p>
+        <span class="twelve-category-load-more__track"><i data-twelve-load-progress></i></span>
+        {{#if pagination.category.next}}
+            <a class="button twelve-category-load-more__button" href="{{pagination.category.next}}" data-twelve-load-more-button><span>Load more</span></a>
+        {{/if}}
+    </div>
+{{else}}
+    {{#if category.search_error}}
+        <p>{{lang 'search.errorMessage'}}</p>
+    {{else}}
+        <p data-no-products-notification
+           role="alert"
+           aria-live="assertive"
+           tabindex="-1"
+           style="margin: 50px 0;font-size: 16px">
+            {{lang 'categories.no_products'}}
+        </p>
+    {{/if}}
+{{/if}}
+
+<section class="account-policy-message" data-account-empty-products hidden>
+    <p>{{lang 'categories.no_products'}}</p>
+</section>
+
+<hr />
+<p style="font-size: 16px;"><b>Don't see what you're looking for?</b></p>
+<p>
+    <a class="btn button-primary" href="/contact/" style="padding: 10px 15px;">
+        <span>Contact us</span>
+    </a>
+</p>

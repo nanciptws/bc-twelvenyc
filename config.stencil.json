@@ -1,0 +1,19 @@
+{
+  "customLayouts": {
+    "brand": {},
+    "category": {
+      "top-category.html":"/shop/",
+      "new.html":"/new/",
+      "sustainably-sourced.html":"/sustainably-sourced/"
+    },
+    "page": {
+      "submit-order-request.html": "/submit-order-request/",
+      "without-heading.html": "/production-shipping/",
+      "account-configurator.html": "/account-configurator/"
+    },
+    "product": {}
+  },
+  "normalStoreUrl": "https://elc.twelvenyc.com/",
+  "port": 3000,
+  "packageManager": "npm"
+}

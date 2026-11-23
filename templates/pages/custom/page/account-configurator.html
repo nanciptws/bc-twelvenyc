@@ -1,0 +1,755 @@
+---
+gql: "{ customer { formFields { name ... on MultipleChoiceFormFieldValue { value } } } }"
+---
+{{#partial "head"}}
+{{{stylesheet '/assets/css/account-configurator.css'}}}
+{{/partial}}
+
+{{#partial "page"}}
+
+{{assignVar "accountPermissions" "No"}}
+{{#each gql.data.customer.formFields}}
+    {{#if this.name '==' 'Account Permissions'}}
+        {{assignVar "accountPermissions" this.value}}
+    {{/if}}
+{{/each}}
+
+{{#if (getVar "accountPermissions") '===' 'Yes'}} {{/if}}
+
+<main class="account-configurator page">
+    <div class="account-configurator__inner">
+
+        
+
+        <header class="account-configurator__header">
+            <span class="account-configurator__eyebrow">Account configurator</span>
+            <h1>Configure company access</h1>
+            <p>Find a company and control which products and brands are available to its account.</p>
+        </header>
+
+        <div
+            id="main-account-configurator"
+            data-account-configurator
+            data-api-url="{{lang 'endpoints.phpServer'}}account-configurator/api.php"
+            data-local-api-url="http://localhost/project-ptws/twelve-inc/account-configurator/api.php"
+            data-storefront-token="{{settings.storefront_api.token}}"
+        >
+            <section class="account-configurator__card" aria-labelledby="company-search-title">
+                <h2 id="company-search-title">Find a company by name or email</h2>
+                <form class="account-configurator__search" data-company-search>
+                    <label class="u-hiddenVisually" for="company-search">Company name or email</label>
+                    <input id="company-search" type="search" placeholder="Company name or email" minlength="2" autocomplete="off" required data-company-query>
+                    <button class="account-configurator__button" type="submit">Search</button>
+                </form>
+                <div class="account-configurator__message" role="status" aria-live="polite" data-company-message></div>
+                <div class="account-configurator__results" data-company-results></div>
+            </section>
+
+            <div data-configurator-panel hidden></div>
+            <dialog class="account-configurator__conflict-dialog" aria-labelledby="account-conflict-title" data-conflict-dialog>
+                <form method="dialog">
+                    <div class="account-configurator__conflict-head">
+                        <span class="account-configurator__section-label">Configuration warning</span>
+                        <h2 id="account-conflict-title">Approved products use prohibited brands</h2>
+                    </div>
+                    <p>You have selected a product in your approved list from a brand you selected as prohibited. Would you like to go ahead with this configuration?</p>
+                    <button class="account-configurator__remove-conflicting-brands" type="button" data-remove-conflicting-brands>Remove prohibited brands</button>
+                    <h3>Selected products</h3>
+                    <ul class="account-configurator__conflict-products" data-conflict-products></ul>
+                    <div class="account-configurator__conflict-actions">
+                        <button class="account-configurator__conflict-cancel" type="submit" value="cancel" autofocus>Cancel</button>
+                        <button class="account-configurator__button" type="submit" value="confirm">Continue and save</button>
+                    </div>
+                </form>
+            </dialog>
+        </div>
+
+        
+
+    </div>
+</main>
+<script>
+(function () {
+'use strict';
+
+const FIELD_NAME = 'Account Configurator';
+const PRODUCT_IMAGE_PLACEHOLDER = 'https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/no-image.jpg';
+
+function escapeHtml(value) {
+    return String(value == null ? '' : value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[character]));
+}
+
+function uniqueIds(values) {
+    return [...new Set((values || []).map(value => Number(value)).filter(Number.isFinite))];
+}
+
+function companyAddress(company) {
+    if (typeof company.address === 'string') return company.address;
+    const address = company.address || company.companyAddress || {};
+    return [address.address1 || company.addressLine1, address.address2 || company.addressLine2,
+        address.city || company.city, address.state || address.stateOrProvince || company.state,
+        address.zipCode || address.postalCode || company.zipCode, address.country || company.country]
+        .filter(Boolean).join(', ');
+}
+
+function fieldValue(company) {
+    const fields = company.extraFields || company.extra_fields || [];
+    const field = fields.find(item => (item.fieldName || item.labelName || item.name) === FIELD_NAME);
+    return field ? (field.fieldValue == null ? field.value : field.fieldValue) : '';
+}
+
+function initialConfig(company) {
+    const empty = { type: 'product', categoryIds: [], brandIds: [], prohibitedBrandIds: [], products: [] };
+    try {
+        const saved = JSON.parse(fieldValue(company) || '{}');
+        const savedType = saved.type === 'brand' ? 'brand' : 'product';
+        return {
+            ...empty,
+            ...saved,
+            type: savedType,
+            categoryIds: uniqueIds(saved.categoryIds),
+            brandIds: uniqueIds(saved.brandIds),
+            prohibitedBrandIds: savedType === 'brand' ? [] : uniqueIds(saved.prohibitedBrandIds),
+            products: Array.isArray(saved.products) ? saved.products.map(item => {
+                if (item && typeof item === 'object') return item;
+                const id = Number(item);
+                return Number.isFinite(id) ? { id, name: `Product #${id}`, sku: '' } : null;
+            }).filter(item => item && Number.isFinite(Number(item.id))) : [],
+        };
+    } catch (error) {
+        return empty;
+    }
+}
+
+class AccountConfigurator {
+    onReady() {
+        this.root = document.querySelector('[data-account-configurator]');
+        if (!this.root) return;
+        this.apiUrl = window.location.hostname === 'localhost'
+            ? this.root.dataset.localApiUrl
+            : this.root.dataset.apiUrl;
+        this.results = this.root.querySelector('[data-company-results]');
+        this.companyMessage = this.root.querySelector('[data-company-message]');
+        this.panel = this.root.querySelector('[data-configurator-panel]');
+        this.root.querySelector('[data-company-search]').addEventListener('submit', event => this.searchCompanies(event));
+    }
+
+    async request(action, options = {}) {
+        const url = new URL(this.apiUrl, window.location.href);
+        url.searchParams.set('action', action);
+        Object.entries(options.params || {}).forEach(([key, value]) => url.searchParams.set(key, value));
+        const response = await fetch(url.toString(), {
+            method: options.method || 'GET',
+            headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}) },
+            body: options.body ? JSON.stringify(options.body) : undefined,
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok || payload.ok === false) throw new Error(payload.message || 'The request could not be completed.');
+        return payload.data;
+    }
+
+    skeleton(rows = 3) {
+        return `<div class="account-configurator__skeleton" aria-hidden="true">${Array.from({ length: rows }, () => '<span></span>').join('')}</div>`;
+    }
+
+    async searchCompanies(event) {
+        event.preventDefault();
+        const query = this.root.querySelector('[data-company-query]').value.trim();
+        if (query.length < 2) return;
+        this.companyMessage.textContent = 'Searching companies…';
+        this.results.innerHTML = this.skeleton();
+        try {
+            const companies = await this.request('companies', { params: { q: query } });
+            this.renderCompanies(companies || []);
+            this.companyMessage.textContent = companies.length ? `${companies.length} ${companies.length === 1 ? 'company' : 'companies'} found.` : 'No companies matched your search.';
+        } catch (error) {
+            this.results.innerHTML = '';
+            this.companyMessage.textContent = error.message;
+        }
+    }
+
+    renderCompanies(companies) {
+        this.results.innerHTML = companies.map((company, index) => {
+            const configured = Boolean(fieldValue(company));
+            const name = company.companyName || company.name || 'Unnamed company';
+            const email = company.companyEmail || company.email || company.adminEmail || 'No email available';
+            return `<article class="account-configurator__company">
+                <div><h3>${escapeHtml(name)}</h3><p>${escapeHtml(email)}</p><p>${escapeHtml(companyAddress(company) || 'No address available')}</p></div>
+                <button type="button" class="account-configurator__status ${configured ? 'is-configured' : ''}" data-company-index="${index}">${configured ? 'Configured' : 'Not configured'}</button>
+            </article>`;
+        }).join('');
+        this.results.querySelectorAll('[data-company-index]').forEach(button => button.addEventListener('click', () => this.selectCompany(companies[Number(button.dataset.companyIndex)])));
+    }
+
+    async selectCompany(company) {
+        this.company = company;
+        this.config = initialConfig(company);
+        this.results.innerHTML = '';
+        this.companyMessage.textContent = '';
+        this.panel.hidden = false;
+        this.panel.innerHTML = this.skeleton(6);
+        this.panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        try {
+            let catalog;
+            try {
+                catalog = await this.loadCatalogGraphql();
+            } catch (error) {
+                catalog = await this.request('catalog');
+            }
+            this.catalog = { categories: catalog.categories || [], brands: catalog.brands || [] };
+            try {
+                await this.loadApprovedProductsGraphql();
+            } catch (error) {
+                // Keep the ID-based placeholders if a saved product is no longer available.
+            }
+            this.renderConfigurator();
+        } catch (error) {
+            this.panel.innerHTML = `<div class="account-configurator__alert" role="alert">${escapeHtml(error.message)}</div>`;
+        }
+    }
+
+    async loadCatalogGraphql() {
+        const token = this.root.dataset.storefrontToken;
+        if (!token) throw new Error('Storefront GraphQL is unavailable.');
+        const fields = 'entityId name children { entityId name children { entityId name children { entityId name } } }';
+        const response = await fetch('/graphql', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ query: `query AccountConfiguratorCatalog { site { categoryTree { ${fields} } brands(first: 50) { edges { node { entityId name } } pageInfo { hasNextPage endCursor } } } }` }),
+        });
+        const payload = await response.json();
+        if (!response.ok || payload.errors) throw new Error('The catalog GraphQL query failed.');
+        const flatten = (nodes, parentId = 0) => (nodes || []).reduce((all, node) => all.concat(
+            [{ id: Number(node.entityId), name: node.name, parentId }],
+            flatten(node.children, Number(node.entityId)),
+        ), []);
+        const site = payload.data && payload.data.site;
+        if (!site) throw new Error('The catalog GraphQL response was empty.');
+        const brands = (site.brands.edges || []).map(edge => ({ id: Number(edge.node.entityId), name: edge.node.name }));
+        let pageInfo = site.brands.pageInfo || {};
+        while (pageInfo.hasNextPage && pageInfo.endCursor) {
+            const brandResponse = await fetch('/graphql', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: `query AccountConfiguratorBrands($after: String!) {
+                        site {
+                            brands(first: 50, after: $after) {
+                                edges { node { entityId name } }
+                                pageInfo { hasNextPage endCursor }
+                            }
+                        }
+                    }`,
+                    variables: { after: pageInfo.endCursor },
+                }),
+            });
+            const brandPayload = await brandResponse.json();
+            if (!brandResponse.ok || brandPayload.errors) throw new Error('The brands GraphQL query failed.');
+            const brandConnection = brandPayload.data && brandPayload.data.site
+                ? brandPayload.data.site.brands
+                : null;
+            if (!brandConnection) throw new Error('The brands GraphQL response was empty.');
+            (brandConnection.edges || []).forEach(edge => brands.push({
+                id: Number(edge.node.entityId),
+                name: edge.node.name,
+            }));
+            pageInfo = brandConnection.pageInfo || {};
+        }
+        brands.sort((first, second) => first.name.localeCompare(second.name, undefined, { sensitivity: 'base' }));
+        return {
+            categories: flatten(site.categoryTree),
+            brands,
+        };
+    }
+
+    async loadApprovedProductsGraphql() {
+        const savedProducts = Array.isArray(this.config.products) ? this.config.products : [];
+        const productIds = uniqueIds(savedProducts.map(product => product && product.id));
+        if (!productIds.length) return;
+
+        const token = this.root.dataset.storefrontToken;
+        if (!token) throw new Error('Storefront GraphQL is unavailable.');
+
+        const loadedProducts = [];
+        const chunks = [];
+        for (let index = 0; index < productIds.length; index += 50) chunks.push(productIds.slice(index, index + 50));
+
+        for (const ids of chunks) {
+            const response = await fetch('/graphql', {
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    query: `query AccountConfiguratorProducts($productIds: [Int!]!) {
+                        site {
+                            products(first: 50, entityIds: $productIds) {
+                                edges { node { entityId name sku brand { entityId name } defaultImage { url(width: 160) } } }
+                            }
+                        }
+                    }`,
+                    variables: { productIds: ids },
+                }),
+            });
+            const payload = await response.json();
+            if (!response.ok || payload.errors) throw new Error('The approved products GraphQL query failed.');
+            const edges = payload.data && payload.data.site && payload.data.site.products
+                ? payload.data.site.products.edges || []
+                : [];
+            edges.forEach(edge => loadedProducts.push({
+                id: Number(edge.node.entityId),
+                name: edge.node.name,
+                sku: edge.node.sku || '',
+                brandId: Number(edge.node.brand && edge.node.brand.entityId || 0),
+                brandName: edge.node.brand ? edge.node.brand.name : '',
+                imageUrl: edge.node.defaultImage ? edge.node.defaultImage.url : PRODUCT_IMAGE_PLACEHOLDER,
+            }));
+        }
+
+        const loadedById = new Map(loadedProducts.map(product => [Number(product.id), product]));
+        const savedById = new Map(savedProducts.map(product => [Number(product.id), product]));
+        this.config.products = productIds.map(id => loadedById.get(id) || savedById.get(id) || {
+            id,
+            name: `Product #${id}`,
+            sku: '',
+        });
+    }
+
+    categoryMarkup(categories, parentId = 0, depth = 0) {
+        return categories.filter(category => (
+            Number(category.parentId || 0) === Number(parentId)
+            && String(category.name || '').trim().toLowerCase() !== 'brands'
+        )).map(category => {
+            const hasChildren = categories.some(item => Number(item.parentId || 0) === Number(category.id));
+            const isShop = String(category.name || '').trim().toLowerCase() === 'shop';
+            return `<li class="${hasChildren ? 'is-parent' : ''} ${isShop ? 'is-shop-category' : ''}" style="--tree-depth:${depth}"><label><input type="checkbox" value="${Number(category.id)}" data-parent-category="${Number(category.parentId || 0)}" data-category ${this.config.categoryIds.includes(Number(category.id)) ? 'checked' : ''}><span>${escapeHtml(category.name)}</span></label>
+            ${this.categoryMarkup(categories, category.id, depth + 1)}</li>`;
+        }).join('');
+    }
+
+    renderConfigurator() {
+        const name = this.company.companyName || this.company.name || 'Unnamed company';
+        const email = this.company.companyEmail || this.company.email || this.company.adminEmail || 'No email available';
+        const brandChecks = this.catalog.brands.map(brand => `<li><label><input type="checkbox" value="${brand.id}" data-brand ${this.config.brandIds.includes(Number(brand.id)) ? 'checked' : ''}><span>${escapeHtml(brand.name)}</span></label></li>`).join('');
+        const prohibitedBrands = [...this.catalog.brands].sort((first, second) => {
+            const firstIsLaMer = first.name.trim().toLowerCase() === 'la mer';
+            const secondIsLaMer = second.name.trim().toLowerCase() === 'la mer';
+            if (firstIsLaMer !== secondIsLaMer) return firstIsLaMer ? -1 : 1;
+            return first.name.localeCompare(second.name, undefined, { sensitivity: 'base' });
+        });
+        const prohibitedBrandChecks = prohibitedBrands.map(brand => `<li><label><input type="checkbox" value="${brand.id}" data-prohibited-brand ${this.config.prohibitedBrandIds.includes(Number(brand.id)) ? 'checked' : ''}><span>${escapeHtml(brand.name)}</span></label></li>`).join('');
+        this.panel.innerHTML = `<section class="account-configurator__card account-configurator__selected">
+            <span class="account-configurator__section-label">Selected company</span><h2>${escapeHtml(name)}</h2><p>${escapeHtml(email)}</p><p>${escapeHtml(companyAddress(this.company) || 'No address available')}</p>
+        </section>
+        <form class="account-configurator__card account-configurator__form" data-config-form>
+            <label class="account-configurator__field account-configurator__type"><span>Type</span><select data-type><option value="product" ${this.config.type === 'product' ? 'selected' : ''}>Product levels</option><option value="brand" ${this.config.type === 'brand' ? 'selected' : ''}>Brand levels</option></select></label>
+            <div class="account-configurator__columns" data-brand-level-sections ${this.config.type === 'brand' ? '' : 'hidden'}>
+                <section class="account-configurator__brand-list"><h3>Brands</h3><p>Select the visible brands.</p><div class="account-configurator__selected-count" data-brand-count>Selected: 0</div><label class="account-configurator__select-all"><input type="checkbox" data-select-all="brand"><span>Select all</span></label><label class="u-hiddenVisually" for="brand-filter">Search brands</label><input id="brand-filter" class="account-configurator__list-filter" type="search" placeholder="Search brands" autocomplete="off" data-brand-filter><div class="account-configurator__check-list" data-brand-list><ul>${brandChecks || '<li>No brands found.</li>'}</ul></div></section>
+                <section class="account-configurator__category-list"><h3>Categories</h3><p>Selected categories will be hidden from the storefront.</p><div class="account-configurator__selected-count" data-category-count>Selected: 0</div><label class="account-configurator__select-all"><input type="checkbox" data-select-all="category"><span>Select all</span></label><div class="account-configurator__check-list"><ul data-category-list>${this.categoryMarkup(this.catalog.categories)}</ul></div></section>
+            </div>
+            <section class="account-configurator__products" data-approved-section ${this.config.type === 'product' ? '' : 'hidden'}>
+                <h3>Approved products - Will be Visible on customer view.</h3><p>Search by product name or SKU, then select products to approve.</p>
+                <div class="account-configurator__search"><label class="u-hiddenVisually" for="product-search">Product name or SKU</label><input id="product-search" type="search" placeholder="Product name or SKU" autocomplete="off" data-product-query><button type="button" class="account-configurator__button" data-product-search>Search</button></div>
+                <button type="button" class="account-configurator__bulk-toggle" aria-expanded="false" aria-controls="bulk-product-import" data-bulk-toggle>Add products in bulk</button>
+                <div id="bulk-product-import" class="account-configurator__bulk-panel" data-bulk-panel hidden>
+                    <p class="account-configurator__bulk-help">Paste up to 50 SKUs, separated by commas or one SKU per line.</p>
+                    <div class="account-configurator__bulk-import"><label class="u-hiddenVisually" for="bulk-product-skus">Product SKUs</label><textarea id="bulk-product-skus" rows="4" placeholder="BF30&#10;BF31&#10;SKU-100" data-bulk-skus></textarea><button type="button" class="account-configurator__button" data-import-skus>Import SKUs</button></div>
+                    <div class="account-configurator__message" role="status" aria-live="polite" data-import-message></div>
+                </div>
+                <div class="account-configurator__message" role="status" aria-live="polite" data-product-message></div><div data-product-results></div>
+                <div class="account-configurator__approved" data-approved-products></div>
+            </section>
+            <section class="account-configurator__field account-configurator__prohibited-brands" data-prohibited-section ${this.config.type === 'brand' ? 'hidden' : ''}><span>Prohibited brands</span><small id="prohibited-brands-help">Select one or more brands. Selected brands will be hidden from the storefront.</small><div class="account-configurator__selected-count" data-prohibited-count>Selected: 0</div><label class="account-configurator__select-all"><input type="checkbox" data-select-all="prohibited"><span>Select all</span></label><label class="u-hiddenVisually" for="prohibited-brand-filter">Search prohibited brands</label><input id="prohibited-brand-filter" class="account-configurator__list-filter" type="search" placeholder="Search brands" autocomplete="off" data-prohibited-brand-filter><div class="account-configurator__check-list" aria-describedby="prohibited-brands-help" data-prohibited-brand-list><ul>${prohibitedBrandChecks || '<li>No brands found.</li>'}</ul></div></section>
+            <div class="account-configurator__actions"><div class="account-configurator__message" role="status" aria-live="polite" data-save-message></div><button class="account-configurator__clear-filters" type="button" data-clear-filters>Clear filters</button><button class="account-configurator__button" type="submit" data-save>Save configuration</button></div>
+        </form>`;
+        this.bindConfigurator();
+        this.renderApprovedProducts();
+    }
+
+    selectedCategoryIds(form) {
+        const categoryInputs = [...form.querySelectorAll('[data-category]')];
+        const categoryChildren = parentId => categoryInputs
+            .filter(input => Number(input.dataset.parentCategory) === Number(parentId));
+        const compactCategory = input => {
+            const children = categoryChildren(input.value);
+            const childStates = children.map(compactCategory);
+            const hasSelectedDescendant = childStates.some(state => state.hasSelection);
+            const explicitlySelected = input.checked && !hasSelectedDescendant;
+            const canCompact = !input.closest('li').classList.contains('is-shop-category');
+            if (explicitlySelected) {
+                return { ids: [Number(input.value)], fullySelected: true, hasSelection: true };
+            }
+            if (canCompact && children.length && childStates.every(state => state.fullySelected)) {
+                return {
+                    ids: [Number(input.value)].concat(childStates.reduce((ids, state) => ids.concat(state.ids), [])),
+                    fullySelected: true,
+                    hasSelection: true,
+                };
+            }
+            return {
+                ids: childStates.reduce((ids, state) => ids.concat(state.ids), []),
+                fullySelected: false,
+                hasSelection: input.checked || hasSelectedDescendant,
+            };
+        };
+        return uniqueIds(categoryChildren(0)
+            .map(compactCategory)
+            .reduce((ids, state) => ids.concat(state.ids), []));
+    }
+
+    bindConfigurator() {
+        const form = this.panel.querySelector('[data-config-form]');
+        const type = form.querySelector('[data-type]');
+        const approvedSection = form.querySelector('[data-approved-section]');
+        const brandLevelSections = form.querySelector('[data-brand-level-sections]');
+        const prohibitedSection = form.querySelector('[data-prohibited-section]');
+        const updateTypeSections = () => {
+            const isProductLevel = type.value === 'product';
+            approvedSection.hidden = !isProductLevel;
+            brandLevelSections.hidden = isProductLevel;
+            prohibitedSection.hidden = !isProductLevel;
+        };
+        type.addEventListener('change', () => {
+            if (type.value === 'brand') {
+                form.querySelectorAll('[data-prohibited-brand]').forEach(input => { input.checked = false; });
+                this.config.prohibitedBrandIds = [];
+            }
+            form.querySelector('[data-save-message]').textContent = '';
+            updateTypeSections();
+            updateSelectionCounts();
+        });
+        updateTypeSections();
+        const bindListFilter = (inputSelector, listSelector) => {
+            const input = form.querySelector(inputSelector);
+            const list = form.querySelector(listSelector);
+            input.addEventListener('input', () => {
+                const query = input.value.trim().toLowerCase();
+                list.querySelectorAll('li').forEach(item => {
+                    item.hidden = query !== '' && !item.textContent.toLowerCase().includes(query);
+                });
+            });
+        };
+        bindListFilter('[data-brand-filter]', '[data-brand-list]');
+        bindListFilter('[data-prohibited-brand-filter]', '[data-prohibited-brand-list]');
+        const initialCategoryInputs = [...form.querySelectorAll('[data-category]')];
+        const findInitialCategory = id => initialCategoryInputs.find(input => Number(input.value) === Number(id));
+        initialCategoryInputs.filter(input => input.checked).forEach(input => {
+            let parent = findInitialCategory(input.dataset.parentCategory);
+            while (parent) {
+                parent.checked = true;
+                parent.dataset.autoChecked = 'true';
+                parent = findInitialCategory(parent.dataset.parentCategory);
+            }
+        });
+        const selectionInputs = group => {
+            if (group === 'brand') return [...form.querySelectorAll('[data-brand-list] input[data-brand]')].filter(input => !input.disabled);
+            if (group === 'prohibited') return [...form.querySelectorAll('[data-prohibited-brand-list] input[data-prohibited-brand]')].filter(input => !input.disabled);
+            return [...form.querySelectorAll('[data-category-list] input[data-category]')].filter(input => (
+                !input.disabled &&
+                !input.closest('li').classList.contains('is-shop-category')
+            ));
+        };
+        const updateSelectAllControls = () => {
+            form.querySelectorAll('[data-select-all]').forEach(master => {
+                const inputs = selectionInputs(master.dataset.selectAll);
+                const inputIds = new Set(inputs.map(input => String(input.value)));
+                const selectedIds = new Set(inputs.filter(input => input.checked).map(input => String(input.value)));
+                const selectedCount = selectedIds.size;
+                const allSelected = inputIds.size > 0 && selectedCount === inputIds.size;
+                master.checked = allSelected;
+                master.indeterminate = selectedCount > 0 && !allSelected;
+                master.dataset.selectionAction = allSelected ? 'deselect' : 'select';
+                master.nextElementSibling.textContent = allSelected ? 'Deselect all' : 'Select all';
+            });
+        };
+        const updateSelectionCounts = () => {
+            const checkedUniqueCount = group => new Set(
+                selectionInputs(group).filter(input => input.checked).map(input => String(input.value))
+            ).size;
+            form.querySelector('[data-brand-count]').textContent = `Selected: ${checkedUniqueCount('brand')}`;
+            form.querySelector('[data-category-count]').textContent = `Selected: ${this.selectedCategoryIds(form).length}`;
+            form.querySelector('[data-prohibited-count]').textContent = `Selected: ${checkedUniqueCount('prohibited')}`;
+            updateSelectAllControls();
+        };
+        form.querySelectorAll('[data-select-all]').forEach(master => {
+            master.addEventListener('change', () => {
+                const shouldSelect = master.dataset.selectionAction !== 'deselect';
+                selectionInputs(master.dataset.selectAll).forEach(input => {
+                    input.checked = shouldSelect;
+                    delete input.dataset.autoChecked;
+                });
+                if (master.dataset.selectAll === 'category') {
+                    form.querySelectorAll('.is-shop-category > label > [data-category]').forEach(input => {
+                        input.checked = false;
+                        delete input.dataset.autoChecked;
+                    });
+                }
+                updateSelectionCounts();
+            });
+        });
+        form.querySelector('[data-clear-filters]').addEventListener('click', () => {
+            form.querySelectorAll('[data-brand], [data-category], [data-prohibited-brand]').forEach(input => {
+                input.checked = false;
+                delete input.dataset.autoChecked;
+            });
+            form.querySelectorAll('[data-brand-filter], [data-prohibited-brand-filter]').forEach(input => {
+                input.value = '';
+            });
+            form.querySelectorAll('[data-brand-list] li, [data-prohibited-brand-list] li').forEach(item => {
+                item.hidden = false;
+            });
+            form.querySelector('[data-save-message]').textContent = '';
+            updateSelectionCounts();
+        });
+        form.addEventListener('change', event => {
+            if (event.target.matches('[data-brand], [data-category], [data-prohibited-brand]')) updateSelectionCounts();
+        });
+        updateSelectionCounts();
+        form.querySelector('[data-category-list]').addEventListener('change', event => {
+            if (!event.target.matches('[data-category]')) return;
+            const category = event.target;
+            const categoryInputs = [...form.querySelectorAll('[data-category]')];
+            const findCategory = id => categoryInputs.find(input => Number(input.value) === Number(id));
+            const hasSelectedDescendant = parentId => {
+                const children = categoryInputs.filter(input => Number(input.dataset.parentCategory) === Number(parentId));
+                return children.some(child => child.checked || hasSelectedDescendant(child.value));
+            };
+            let parentCheckbox = findCategory(category.dataset.parentCategory);
+            delete category.dataset.autoChecked;
+
+            if (category.checked) {
+                while (parentCheckbox) {
+                    if (!parentCheckbox.checked) {
+                        parentCheckbox.checked = true;
+                        parentCheckbox.dataset.autoChecked = 'true';
+                    }
+                    parentCheckbox = findCategory(parentCheckbox.dataset.parentCategory);
+                }
+                updateSelectionCounts();
+                return;
+            }
+
+            while (parentCheckbox) {
+                if (!hasSelectedDescendant(parentCheckbox.value)) {
+                    parentCheckbox.checked = false;
+                    delete parentCheckbox.dataset.autoChecked;
+                }
+                parentCheckbox = findCategory(parentCheckbox.dataset.parentCategory);
+            }
+            updateSelectionCounts();
+        });
+        const search = () => this.searchProducts();
+        const importSkus = () => this.importProductSkus();
+        const bulkToggle = this.panel.querySelector('[data-bulk-toggle]');
+        const bulkPanel = this.panel.querySelector('[data-bulk-panel]');
+        this.panel.querySelector('[data-product-search]').addEventListener('click', search);
+        this.panel.querySelector('[data-product-query]').addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); search(); } });
+        bulkToggle.addEventListener('click', () => {
+            const willOpen = bulkPanel.hidden;
+            bulkPanel.hidden = !willOpen;
+            bulkToggle.setAttribute('aria-expanded', String(willOpen));
+            bulkToggle.textContent = willOpen ? 'Hide bulk product import' : 'Add products in bulk';
+            if (willOpen) this.panel.querySelector('[data-bulk-skus]').focus();
+        });
+        this.panel.querySelector('[data-import-skus]').addEventListener('click', importSkus);
+        this.panel.querySelector('[data-bulk-skus]').addEventListener('keydown', event => {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') { event.preventDefault(); importSkus(); }
+        });
+        this.panel.querySelector('[data-product-results]').addEventListener('change', event => {
+            if (!event.target.matches('[data-product]')) return;
+            const product = JSON.parse(decodeURIComponent(event.target.dataset.product));
+            if (event.target.checked) {
+                if (!this.config.products.some(item => Number(item.id) === Number(product.id))) this.config.products.push(product);
+            } else {
+                this.config.products = this.config.products.filter(item => Number(item.id) !== Number(product.id));
+            }
+            this.renderApprovedProducts();
+        });
+        this.panel.querySelector('[data-approved-products]').addEventListener('click', event => {
+            const remove = event.target.closest('[data-remove-product]');
+            if (!remove) return;
+            const productId = Number(remove.dataset.removeProduct);
+            this.config.products = this.config.products.filter(product => Number(product.id) !== productId);
+            const searchCheckbox = this.panel.querySelector(`[data-product-id="${productId}"]`);
+            if (searchCheckbox) searchCheckbox.checked = false;
+            this.renderApprovedProducts();
+        });
+        form.addEventListener('submit', event => this.save(event));
+    }
+
+    async importProductSkus() {
+        const input = this.panel.querySelector('[data-bulk-skus]');
+        const message = this.panel.querySelector('[data-import-message]');
+        const button = this.panel.querySelector('[data-import-skus]');
+        const skuMap = new Map();
+        input.value.split(/[\r\n,]+/).forEach(value => {
+            const sku = value.trim();
+            if (sku) skuMap.set(sku.toLowerCase(), sku);
+        });
+        const skus = [...skuMap.values()];
+        if (!skus.length) { message.textContent = 'Enter at least one SKU.'; return; }
+        if (skus.length > 50) { message.textContent = 'You can import up to 50 SKUs at a time.'; return; }
+
+        button.disabled = true;
+        message.textContent = 'Importing products…';
+        try {
+            const result = await this.request('products-by-skus', { method: 'POST', body: { skus } });
+            const products = result.products || [];
+            let added = 0;
+            products.forEach(product => {
+                if (!this.config.products.some(item => Number(item.id) === Number(product.id))) {
+                    this.config.products.push(product);
+                    added += 1;
+                }
+                const searchCheckbox = this.panel.querySelector(`[data-product-id="${Number(product.id)}"]`);
+                if (searchCheckbox) searchCheckbox.checked = true;
+            });
+            const notFound = result.notFoundSkus || [];
+            input.value = notFound.join('\n');
+            this.renderApprovedProducts();
+            const matched = products.length;
+            const summary = `${matched} ${matched === 1 ? 'product' : 'products'} matched; ${added} added.`;
+            message.textContent = notFound.length
+                ? `${summary} Not found: ${notFound.join(', ')}.`
+                : summary;
+        } catch (error) {
+            message.textContent = error.message;
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    async searchProducts() {
+        const query = this.panel.querySelector('[data-product-query]').value.trim();
+        const message = this.panel.querySelector('[data-product-message]');
+        const results = this.panel.querySelector('[data-product-results]');
+        if (query.length < 2) { message.textContent = 'Enter at least two characters.'; return; }
+        message.textContent = 'Searching products…';
+        results.innerHTML = this.skeleton(2);
+        try {
+            const products = await this.request('products', { params: { q: query } });
+            results.innerHTML = `<div class="account-configurator__check-list"><ul>${products.map(product => {
+                const checked = this.config.products.some(item => Number(item.id) === Number(product.id));
+                const imageUrl = product.imageUrl || PRODUCT_IMAGE_PLACEHOLDER;
+                const catalogBrand = (this.catalog.brands || []).find(brand => Number(brand.id) === Number(product.brandId));
+                const brandName = product.brandName || (catalogBrand && catalogBrand.name) || 'N/A';
+                return `<li><label><input type="checkbox" data-product-id="${Number(product.id)}" data-product="${encodeURIComponent(JSON.stringify(product))}" ${checked ? 'checked' : ''}><img class="account-configurator__product-image" src="${escapeHtml(imageUrl)}" alt="" loading="lazy"><span><strong>${escapeHtml(product.name)}</strong><small>SKU: ${escapeHtml(product.sku || 'N/A')}</small><small>Brand: ${escapeHtml(brandName)}</small></span></label></li>`;
+            }).join('') || '<li>No products found.</li>'}</ul></div>`;
+            message.textContent = products.length ? `${products.length} products found.` : 'No products matched your search.';
+        } catch (error) { results.innerHTML = ''; message.textContent = error.message; }
+    }
+
+    renderApprovedProducts() {
+        const target = this.panel.querySelector('[data-approved-products]');
+        target.innerHTML = this.config.products.length ? `<h4>Approved products</h4>${this.config.products.map(product => {
+            const catalogBrand = (this.catalog.brands || []).find(brand => Number(brand.id) === Number(product.brandId));
+            const brandName = product.brandName || (catalogBrand && catalogBrand.name) || 'N/A';
+            return `<article><div class="account-configurator__product"><img class="account-configurator__product-image" src="${escapeHtml(product.imageUrl || PRODUCT_IMAGE_PLACEHOLDER)}" alt="" loading="lazy"><div><strong>${escapeHtml(product.name)}</strong><span>SKU: ${escapeHtml(product.sku || 'N/A')}</span><span>Brand: ${escapeHtml(brandName)}</span></div></div><button type="button" data-remove-product="${Number(product.id)}">Remove</button></article>`;
+        }).join('')}` : '';
+    }
+
+    confirmConflictingProducts(products) {
+        const dialog = this.root.querySelector('[data-conflict-dialog]');
+        const list = dialog && dialog.querySelector('[data-conflict-products]');
+        const removeProducts = dialog && dialog.querySelector('[data-remove-conflicting-brands]');
+        if (!dialog || !list || !removeProducts || typeof dialog.showModal !== 'function') {
+            const names = products.map(product => `• ${product.name || `Product #${product.id}`}`).join('\n');
+            return Promise.resolve(window.confirm(`Conflicting approved products:\n\n${names}\n\nContinue saving?`) ? 'confirm' : 'cancel');
+        }
+
+        list.replaceChildren(...products.map(product => {
+            const item = document.createElement('li');
+            const name = document.createElement('strong');
+            const details = document.createElement('span');
+            const catalogBrand = (this.catalog.brands || []).find(brand => Number(brand.id) === Number(product.brandId));
+            const brandName = product.brandName || (catalogBrand && catalogBrand.name) || 'Unknown brand';
+            name.textContent = product.name || `Product #${product.id}`;
+            details.textContent = `SKU: ${product.sku || 'N/A'} · Brand: ${brandName}`;
+            item.append(name, details);
+            return item;
+        }));
+
+        removeProducts.onclick = () => {
+            const confirmed = window.confirm(
+                'Remove these products from the Approved products list?',
+            );
+            if (confirmed) dialog.close('remove-products');
+        };
+
+        dialog.returnValue = 'cancel';
+        dialog.showModal();
+        return new Promise(resolve => {
+            dialog.addEventListener('close', () => resolve(dialog.returnValue), { once: true });
+        });
+    }
+
+    async save(event) {
+        event.preventDefault();
+        const form = event.currentTarget;
+        const button = form.querySelector('[data-save]');
+        const message = form.querySelector('[data-save-message]');
+        const companyId = Number(this.company.companyId || this.company.id);
+        const selected = selector => [...form.querySelectorAll(`${selector}:checked`)].map(input => Number(input.value));
+        const isProductLevel = form.querySelector('[data-type]').value === 'product';
+        const productIds = isProductLevel ? uniqueIds(this.config.products.map(product => product.id)) : [];
+        const hiddenCategoryIds = this.selectedCategoryIds(form);
+        this.config = {
+            type: isProductLevel ? 'product' : 'brand',
+            categoryIds: isProductLevel ? [] : uniqueIds(hiddenCategoryIds),
+            brandIds: isProductLevel ? [] : uniqueIds(selected('[data-brand]')),
+            prohibitedBrandIds: isProductLevel ? uniqueIds(selected('[data-prohibited-brand]')) : [],
+            products: this.config.products,
+        };
+        const savedConfiguration = { ...this.config, products: productIds };
+        const prohibitedBrandIds = new Set(this.config.prohibitedBrandIds.map(Number));
+        const conflictingProducts = isProductLevel
+            ? this.config.products.filter(product => prohibitedBrandIds.has(Number(product.brandId)))
+            : [];
+
+        if (conflictingProducts.length) {
+            const conflictAction = await this.confirmConflictingProducts(conflictingProducts);
+
+            if (conflictAction === 'cancel') {
+                message.textContent = 'Configuration was not saved.';
+                return;
+            }
+
+            if (conflictAction === 'remove-products') {
+                const conflictingProductIds = new Set(conflictingProducts.map(product => Number(product.id)));
+                this.config.products = this.config.products.filter(product => !conflictingProductIds.has(Number(product.id)));
+                form.querySelectorAll('[data-product-id]:checked').forEach(input => {
+                    if (conflictingProductIds.has(Number(input.dataset.productId))) input.checked = false;
+                });
+                savedConfiguration.products = uniqueIds(this.config.products.map(product => product.id));
+                this.renderApprovedProducts();
+            }
+        }
+
+        button.disabled = true;
+        message.textContent = 'Saving configuration…';
+        try {
+            const result = await this.request('save', { method: 'POST', body: { companyId, configuration: savedConfiguration } });
+            const storedConfiguration = result.configuration || savedConfiguration;
+            this.config.categoryIds = storedConfiguration.categoryIds || [];
+            message.textContent = 'Configuration saved successfully.';
+            const companyField = (this.company.extraFields || (this.company.extraFields = [])).find(field => (field.fieldName || field.labelName) === FIELD_NAME);
+            if (companyField) companyField.fieldValue = JSON.stringify(storedConfiguration); else this.company.extraFields.push({ fieldName: FIELD_NAME, fieldValue: JSON.stringify(storedConfiguration) });
+        } catch (error) { message.textContent = error.message; } finally { button.disabled = false; }
+    }
+}
+
+function startAccountConfigurator() {
+    const configurator = new AccountConfigurator();
+    configurator.onReady();
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startAccountConfigurator);
+} else {
+    startAccountConfigurator();
+}
+}());
+</script>
+{{/partial}}
+
+{{> layout/base}}

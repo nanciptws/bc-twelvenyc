@@ -1,0 +1,54 @@
+<div class="twelve-cart-preview" data-cart-subtotal="{{cart.sub_total.value}}">
+    <header class="twelve-cart-top">
+        <h2>Cart <em>({{cart.quantity}})</em></h2>
+        <button type="button" data-twelve-cart-close aria-label="Close cart">&times;</button>
+    </header>
+    {{!-- 
+    <div class="twelve-cart-ship">
+        <p data-twelve-sampling-message>Add $250.00 for complimentary sampling</p>
+        <span><i data-twelve-sampling-bar style="width: 0%"></i></span>
+    </div>
+    --}}
+    <div class="twelve-cart-body">
+        {{#if cart.items.length}}
+            <ul>
+                {{#each cart.items}}
+                    <li>
+                        <div class="twelve-cart-image">
+                            {{#if type '==' 'GiftCertificate'}}
+                                <img alt="Gift certificate" src="{{cdn ../theme_settings.default_image_gift_certificate}}">
+                            {{else}}
+                                {{> components/common/responsive-img image=image fallback_size=../theme_settings.productthumb_size lazyload=../theme_settings.lazyload_mode default_image=../theme_settings.default_image_product}}
+                            {{/if}}
+                        </div>
+                        <div class="twelve-cart-item-content">
+                            <h3><a href="{{url}}">{{name}}</a></h3>
+                            {{#if sku}}<p>Product ID {{sku}}</p>{{/if}}
+                            {{#if options}}<p>{{#each options}}{{value}}{{#unless @last}} · {{/unless}}{{/each}}</p>{{else}}{{#if brand.name}}<p>{{brand.name}}</p>{{/if}}{{/if}}
+                            <div class="twelve-cart-row">
+                                <span class="twelve-cart-qty">
+                                    <button type="button" data-twelve-cart-update data-cart-itemid="{{id}}" data-quantity="{{quantity}}" data-action="dec" aria-label="Decrease quantity">&minus;</button>
+                                    <input value="{{quantity}}" readonly aria-label="Quantity">
+                                    <button type="button" data-twelve-cart-update data-cart-itemid="{{id}}" data-quantity="{{quantity}}" data-action="inc" aria-label="Increase quantity">+</button>
+                                </span>
+                                <strong>{{total.formatted}}</strong>
+                            </div>
+                            {{!-- 
+                            <small>Minimum {{#if min_purchase_quantity}}{{min_purchase_quantity}}{{else}}1{{/if}} units</small>
+                            --}}
+                            <button type="button" class="twelve-cart-remove" data-twelve-cart-remove data-cart-itemid="{{id}}">Remove</button>
+                        </div>
+                    </li>
+                {{/each}}
+            </ul>
+        {{else}}
+            <div class="twelve-cart-empty"><h3>Nothing here yet</h3><p>Browse the catalogue to add products.</p><a href="/shop/">Browse the catalogue</a></div>
+        {{/if}}
+    </div>
+    <footer class="twelve-cart-foot">
+        <div><span>Subtotal</span><strong>{{cart.sub_total.formatted}}</strong></div>
+        <p>Duties and shipping calculated at checkout</p>
+        <a class="twelve-cart-primary" href="{{urls.cart}}">View order</a>
+        <button type="button" class="twelve-cart-secondary" data-twelve-cart-close>Continue shopping</button>
+    </footer>
+</div>

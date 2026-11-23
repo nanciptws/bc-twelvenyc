@@ -1,0 +1,63 @@
+---
+cart: true
+---
+{{inject 'cancelButtonText' (lang 'common.cancel')}}
+{{#partial "head"}}
+    {{{stylesheet '/assets/css/cart.css'}}}
+{{/partial}}
+{{#partial "page"}}
+{{inject 'invalidEntryMessage' (lang 'cart.invalid_entry_message')}}
+{{inject 'multiCouponUIEnabled' cart.multi_coupon_ui_enabled}}
+<main class="twelve-cart page" data-cart>
+    <div class="twelve-cart__inner">
+        {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+        <header class="twelve-cart__header">
+            <div><span class="twelve-eyebrow">Your order</span><h1>Order summary</h1></div>
+            <p>
+                <strong>Price does not include shipping and duties</strong>
+            </p>
+        </header>
+        <div data-cart-status>{{> components/cart/status-messages}}</div>
+        {{#if cart.items.length}}
+            <div class="loadingOverlay"></div>
+            <div class="twelve-cart__layout">
+                <section class="twelve-cart__lines" aria-label="Items in your order"><div data-cart-content>{{> components/cart/content}}</div></section>
+                <aside class="twelve-cart__aside" aria-label="Order summary">
+                    <section class="twelve-cart__summary" data-cart-totals>{{> components/cart/totals}}</section>
+                    
+                    <section class="twelve-cart__info-card twelve-cart__customization-card">
+                        <h2>Want to make it your own?</h2>
+                        <p class="twelve-cart__customization-intro">Add your logo and choose your colors.</p>
+                        <div class="twelve-cart__customization-next-steps">
+                            <h3>Next steps</h3>
+                            <p>After you submit, you&rsquo;ll be prompted to share your logo files and artwork notes. We&rsquo;ll send back a rendering for approval.</p>
+                            <p class="twelve-cart__customization-note">Customization may vary by item and MOQ.<br>Minor size updates available on select products.</p>
+                        </div>
+                    </section>
+
+                    <section class="twelve-cart__info-card twelve-cart__customization-card">
+                        <h2>Need freight estimates?</h2>
+                        <p class="twelve-cart__customization-intro">Freight, duties and distribution fees are quoted separately.</p>
+                        <div class="twelve-cart__customization-next-steps">
+                            <h3>Next steps</h3>
+                            <p>After you submit, you&rsquo;ll be prompted to request a freight estimate. A Twelve representative will follow up with your quote and confirm the shipping timeline.</p>
+                            <p class="twelve-cart__customization-note">Prices shown are Ex Works.</p>
+                        </div>
+                    </section>
+                    
+                    <section class="twelve-cart__info-card"><span class="twelve-eyebrow">Production times</span>
+                    
+                    {{!-- 
+                    <dl><dt>Standard print</dt><dd>10&ndash;14 days</dd><dt>Complex print</dt><dd>2&ndash;4 weeks</dd><dt>Premiums</dt><dd>8&ndash;12 weeks</dd></dl>
+                    --}}
+                    
+                    <a href="/production-shipping/">Production &amp; shipping <span aria-hidden="true">&rarr;</span></a></section>
+                </aside>
+            </div>
+        {{else}}
+            <section class="twelve-cart__empty"><h2>Your order is empty</h2><p>Browse the catalogue to add products.</p><a class="twelve-button" href="/shop/">Browse the catalogue</a></section>
+        {{/if}}
+    </div>
+</main>
+{{/partial}}
+{{> layout/base}}

@@ -1,0 +1,92 @@
+:root{
+  /* ---- Twelve palette (brand guidelines p.28) ---- */
+  --black:#000000;
+  --white:#FFFFFF;
+  --royal:#1F1ABC;
+  --lavendar:#D6B2DE;
+  --emerald:#00745B;
+  --crimson:#E03249;
+  --lemon:#EEFFAD;
+
+  /* ---- derived neutrals (tints of black, never new hues) ---- */
+  --ink:#000000;
+  --ink-72:#000000;
+  --ink-52:#000000;
+  --ink-38:#9E9E9E;
+  --hair:#E4E4E4;         /* hairline rules */
+  --hair-strong:#C9C9C9;
+  --paper:#FFFFFF;
+  --paper-2:#F7F6F4;      /* faintest warm off-white for banding */
+  --shadow:0 24px 60px -34px rgba(0,0,0,.45);
+
+  /* ---- type ---- */
+  /* All three licensed Dinamo families now embedded above. */
+  --sans:"ABC Social",-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --sans-ext:"ABC Social Extended","ABC Social",-apple-system,Arial,sans-serif;
+  --serif:"ABC Arizona Text",Georgia,"Times New Roman",serif;   /* licensed, embedded above */
+  --word:"Bodoni Moda",Georgia,serif;
+
+  /* ---- spacing (8pt) ---- */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:24px; --s6:32px;
+  --s7:48px; --s8:64px; --s9:96px; --s10:128px; --s11:160px;
+
+  --gutter:56px;
+  --section:128px;
+  --maxw:1512px;
+
+  --dur:.42s;
+  --ease:cubic-bezier(.22,.61,.36,1);
+}
+
+
+$color_primary:#003D77;
+$color_secondary:#005AAF;
+$color_extra:#F3AB1D;
+$loyaltyBronze: #bb775c;
+$loyaltySilver: #97a7ad;
+$loyaltyGold: #da9e59;
+
+@mixin minmid-desktop  { @media (min-width: 1680px)  { @content; } }
+@mixin minxl-desktop  { @media (min-width: 1460px)  { @content; } }
+@mixin xxxl-desktop { @media (max-width: 1920px)  { @content; } }
+@mixin xxl-desktop  { @media (max-width: 1680px)  { @content; } }
+@mixin xl-desktop   { @media (max-width: 1460px)  { @content; } }
+@mixin mid-desktop  { @media (max-width: 1399px)  { @content; } }
+@mixin smid-desktop { @media (max-width: 1350px)  { @content; } }
+@mixin lg-desktop   { @media (max-width: 1300px)  { @content; } }
+@mixin elg-desktop  { @media (max-width: 1280px)  { @content; } }
+@mixin md-desktop   { @media (max-width: 1200px)  { @content; } }
+@mixin emd-desktop  { @media (max-width: 1100px)  { @content; } }
+@mixin sm-desktop-lg   { @media (min-width: 992px)   { @content; } }
+@mixin sm-desktop   { @media (max-width: 991px)   { @content; } }
+@mixin smd-phone    { @media (max-width: 801px)   { @content; } }
+@mixin md-phone     { @media (max-width: 767px)   { @content; } }
+@mixin emd-phone    { @media (max-width: 601px)   { @content; } }
+@mixin sm-phone     { @media (max-width: 551px)   { @content; } }
+@mixin mb-phone     { @media (max-width: 479px)   { @content; } }
+@mixin esm-phone    { @media (max-width: 401px)   { @content; } }
+@mixin eesm-phone    { @media (max-width: 320px)   { @content; } }
+@mixin xs-phone     { @media (max-width: 318px)   { @content; } }
+
+[href]:focus{ outline:none !important;}
+[href]{ text-decoration:none !important;}
+
+.divRow{
+    width: 100%;
+}
+
+.d-flex{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.d-flex-between{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.d-flex-jfc{
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}

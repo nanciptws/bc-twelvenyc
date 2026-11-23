@@ -1,0 +1,41 @@
+<div class="twelve-search-overlay" data-pre-load="box">
+    <form class="form" data-url="{{urls.search}}" data-quick-search-form>
+        <fieldset class="form-fieldset">
+            <div class="form-field">
+                <label class="is-srOnly" for="{{name}}">{{lang "search.quick_search.input_label"}}</label>
+                <svg class="twelve-search-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+                <input class="form-input"
+                       data-search-quick
+                       name="{{name}}"
+                       id="{{name}}"
+                       data-error-message="{{lang 'search.error.empty_field'}}"
+                       placeholder="What are you making?"
+                       autocomplete="off"
+                >
+                <button class="twelve-search-close" type="button" data-drop-down-close aria-label="Close search"><span aria-hidden="true">&times;</span></button>
+            </div>
+        </fieldset>
+    </form>
+    <div class="twelve-search-content">
+        <aside class="twelve-search-popular">
+            <span class="twelve-search-label">Popular</span>
+            <div class="twelve-search-tags">
+                <button type="button" data-twelve-search-term="Canvas tote">Canvas tote</button>
+                <button type="button" data-twelve-search-term="Rigid box">Rigid box</button>
+                <button type="button" data-twelve-search-term="Bottle">Bottle</button>
+                <button type="button" data-twelve-search-term="Ornament">Ornament</button>
+                <button type="button" data-twelve-search-term="Gift kit">Gift kit</button>
+            </div>
+        </aside>
+        <div class="twelve-search-products">
+            <p class="twelve-search-products-title" data-twelve-search-title>Products · <em>Popular right now</em></p>
+            <div class="loadingOverlay" data-twelve-search-loading style="display: none;">&nbsp;</div>
+            <section class="quickSearchResults" data-bind="html: results"></section>
+        </div>
+    </div>
+    <p role="status"
+       aria-live="polite"
+       class="aria-description--hidden"
+       data-search-aria-message-predefined-text="{{{lang 'search.results.quick_count_live'}}}"
+    ></p>
+</div>

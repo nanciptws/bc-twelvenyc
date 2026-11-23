@@ -1,0 +1,23 @@
+{{#if product_results.products}}
+    <div data-twelve-result-count="{{pagination.product_results.total}}">
+    <ul class="productGrid" data-list-name="Quick Search Results">
+        {{#each product_results.products}}
+        <li class="product">
+                {{> components/products/card
+                        settings=../settings
+                        alternate=true
+                        show_compare=../show_compare
+                        theme_settings=../theme_settings
+                        customer=../customer
+                        event="list"
+                        position=(add @index 1)
+                }}
+        </li>
+        {{/each}}
+    </ul>
+    </div>
+{{else}}
+    <div data-twelve-result-count="0">
+        <p class="quickSearchMessage">No match yet. Try “tote”, “box” or “ceramic”.</p>
+    </div>
+{{/if}}

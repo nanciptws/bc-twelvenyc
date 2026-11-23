@@ -1,0 +1,2251 @@
+{{assignVar "globalCustomerRegion" ""}}
+{{#each gql.data.customer.formFields}}
+    {{#if this.name '==' 'Region'}}
+        {{assignVar "globalCustomerRegion" this.value}}
+    {{/if}}
+{{/each}}
+
+<!DOCTYPE html>
+<html class="no-js" lang="{{ locale_name }}">
+    <head>
+        <title>{{ head.title }}</title>
+        {{{ resourceHints }}}
+        {{{ head.meta_tags }}}
+        {{{ head.config }}}
+        {{#block "head"}} {{/block}}
+
+        <link href="{{{ head.favicon }}}" rel="shortcut icon">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script nonce="{{nonce}}">
+            {{!-- Change document class from no-js to js so we can detect this in css --}}
+            document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+
+            {{!-- Show the welcome animation once per browser session. --}}
+            (function () {
+                var storageKey = 'twelveWelcomeIntroSeen';
+                var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+                try {
+                    if (!reduceMotion && window.sessionStorage.getItem(storageKey) !== '1') {
+                        window.sessionStorage.setItem(storageKey, '1');
+                        document.documentElement.classList.add('welcome-intro-pending');
+                    }
+                } catch (error) {
+                    if (!reduceMotion) {
+                        document.documentElement.classList.add('welcome-intro-pending');
+                    }
+                }
+            }());
+        </script>
+
+         <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+        </script>
+
+        <script nonce="{{nonce}}">
+            (function () {
+                if (window.__twelveEarlyB2BAnalyticsInstalled || typeof window.fetch !== 'function') return;
+                window.__twelveEarlyB2BAnalyticsInstalled = true;
+                window.__twelveNetworkOnlyB2BAnalytics = true;
+                window.__twelveB2BListCache = window.__twelveB2BListCache || {};
+
+                function parseBody(body) {
+                    if (!body || typeof body !== 'string') return null;
+                    try { return JSON.parse(body); } catch (error) { return null; }
+                }
+
+                function operationFrom(payload) {
+                    var query = payload && payload.query || '';
+                    if (/shoppingListsItemsCreate\s*\(/.test(query)) return 'items_added';
+                    if (/shoppingListsCreate\s*\(/.test(query)) return 'list_created';
+                    if (/\bshoppingLists?\s*\(/.test(query)) return 'list_query';
+                    return '';
+                }
+
+                function cacheLists(value) {
+                    if (!value || typeof value !== 'object') return;
+                    if (!Array.isArray(value)
+                        && value.id != null
+                        && value.name != null
+                        && value.description != null) {
+                        window.__twelveB2BListCache[String(value.id)] = {
+                            Name: String(value.name || ''),
+                            Description: String(value.description || '')
+                        };
+                    }
+                    Object.keys(value).forEach(function (key) { cacheLists(value[key]); });
+                }
+
+                function announce(operation, requestPayload, responsePayload) {
+                    if (!operation || !responsePayload || (responsePayload.errors && responsePayload.errors.length)) return;
+
+                    console.info('[B2B Analytics Early] Confirmed GraphQL success:', operation, {
+                        request: requestPayload,
+                        response: responsePayload
+                    });
+
+                    var variables = requestPayload && requestPayload.variables || {};
+                    var responseData = responsePayload.data || {};
+                    cacheLists(responseData);
+
+                    if (operation === 'list_query') return;
+
+                    if (operation === 'list_created') {
+                        var createdResult = responseData.shoppingListsCreate || {};
+                        var createdList = createdResult.shoppingList || {};
+                        var requestedList = variables.shoppingListData || {};
+                        var createdId = createdList.id || '';
+                        var createdName = createdList.name || requestedList.name || '';
+                        var createdDescription = createdList.description || requestedList.description || '';
+
+                        if (createdId) {
+                            window.__twelveB2BListCache[String(createdId)] = {
+                                Name: createdName,
+                                Description: createdDescription
+                            };
+                        }
+
+                        var createPayload = {
+                            Name: createdName,
+                            Description: createdDescription,
+                            Email: createdList.customerInfo && createdList.customerInfo.email || '{{customer.email}}',
+                            shopping_list_id: String(createdId),
+                            events: { name: 'Shopping lists created' }
+                        };
+                        console.info('[B2B Analytics Network] Shopping lists created:', createPayload);
+                        if (typeof window.gtag === 'function') {
+                            window.gtag('event', 'Shopping lists created', createPayload);
+                        }
+                    }
+
+                    if (operation === 'items_added') {
+                        var shoppingListId = variables.shoppingListId || '';
+                        var cachedList = window.__twelveB2BListCache[String(shoppingListId)] || {};
+                        var items = Array.isArray(variables.items) ? variables.items : [];
+                        var addPayload = {
+                            Name: cachedList.Name || '',
+                            Description: cachedList.Description || '',
+                            Email: '{{customer.email}}',
+                            shopping_list_id: String(shoppingListId),
+                            product_ids: items.map(function (item) { return item.productId || ''; }).join(','),
+                            variant_ids: items.map(function (item) { return item.variantId || ''; }).join(','),
+                            quantities: items.map(function (item) { return item.quantity || ''; }).join(','),
+                            events: { name: 'Favorited items and items added to shopping lists' }
+                        };
+                        console.info('[B2B Analytics Network] Items added:', addPayload);
+                        if (typeof window.gtag === 'function') {
+                            window.gtag('event', 'Favorited items and items added to shopping lists', addPayload);
+                        }
+                    }
+                }
+
+                var originalFetch = window.fetch;
+                window.fetch = function (input, init) {
+                    var requestUrl = typeof input === 'string' ? input : input && input.url || '';
+                    var isB2BGraphql = /^https:\/\/api-b2b\.bigcommerce\.com\/graphql(?:\?|$)/i.test(requestUrl);
+                    var requestPayloadPromise = Promise.resolve(parseBody(init && init.body));
+
+                    if (isB2BGraphql
+                        && !init?.body
+                        && typeof Request !== 'undefined'
+                        && input instanceof Request) {
+                        requestPayloadPromise = input.clone().text().then(parseBody).catch(function () { return null; });
+                    }
+
+                    var responsePromise = originalFetch.apply(this, arguments);
+                    if (!isB2BGraphql) return responsePromise;
+
+                    return Promise.all([responsePromise, requestPayloadPromise]).then(function (results) {
+                        var response = results[0];
+                        var requestPayload = results[1];
+                        var operation = operationFrom(requestPayload);
+
+                        if (!operation) return response;
+
+                        console.info('[B2B Analytics Early] Exact GraphQL request detected:', operation, requestPayload);
+                        if (!response.ok) return response;
+
+                        response.clone().json().then(function (payload) {
+                            announce(operation, requestPayload, payload);
+                        }).catch(function () {});
+                        return response;
+                    });
+                };
+
+                if (typeof window.XMLHttpRequest === 'function') {
+                    var originalOpen = window.XMLHttpRequest.prototype.open;
+                    var originalSend = window.XMLHttpRequest.prototype.send;
+
+                    window.XMLHttpRequest.prototype.open = function (method, url) {
+                        this.__twelveB2BUrl = url;
+                        return originalOpen.apply(this, arguments);
+                    };
+
+                    window.XMLHttpRequest.prototype.send = function (body) {
+                        var xhr = this;
+                        var requestPayload = parseBody(body);
+                        var operation = /api-b2b\.bigcommerce\.com\/graphql/i.test(xhr.__twelveB2BUrl || '')
+                            ? operationFrom(requestPayload)
+                            : '';
+
+                        if (operation) {
+                            console.info('[B2B Analytics Early] GraphQL XHR detected:', operation, requestPayload);
+                            xhr.addEventListener('load', function () {
+                                if (xhr.status < 200 || xhr.status >= 300) return;
+                                var payload = xhr.response && typeof xhr.response === 'object'
+                                    ? xhr.response
+                                    : parseBody(xhr.responseText);
+                                announce(operation, requestPayload, payload);
+                            }, { once: true });
+                        }
+
+                        return originalSend.apply(this, arguments);
+                    };
+                }
+
+                console.info('[B2B Analytics Early] GraphQL interceptor installed.');
+            }());
+        </script>
+
+        {{> components/common/polyfill-script }}
+        <script nonce="{{nonce}}">window.consentManagerTranslations = `{{{langJson 'consent_manager'}}}`;</script>
+
+        {{!-- Load Lazysizes script ASAP so images will appear --}}
+        <script nonce="{{nonce}}">
+            {{!-- Only load visible elements until the onload event fires, after which preload nearby elements. --}}
+            window.lazySizesConfig = window.lazySizesConfig || {};
+            window.lazySizesConfig.loadMode = 1;
+        </script>
+        <script nonce="{{nonce}}" async src="{{cdn 'assets/dist/theme-bundle.head_async.js' resourceHint='preload' as='script'}}"></script>
+        
+        {{getFontsCollection font-display='block'}}
+        
+        <script nonce="{{nonce}}" async src="{{cdn 'assets/dist/theme-bundle.font.js' resourceHint='preload' as='script'}}"></script>
+
+        <style>
+        @font-face{font-family:"ABC Social";font-style:normal;font-weight:300;font-display:swap;
+        src:url("{{cdn 'assets/fonts/ABCSocial-Light.woff2'}}") format("woff2")}
+        
+        @font-face{font-family:"ABC Social";font-style:italic;font-weight:300;font-display:swap;
+        src:url("{{cdn 'assets/fonts/ABCSocial-LightItalic.woff2'}}") format("woff2")}
+        
+        @font-face{font-family:"ABC Social Extended";font-style:normal;font-weight:500;font-display:swap;
+        src:url("{{cdn 'assets/fonts/ABCSocialExtended-Medium.woff2'}}") format("woff2")}
+        
+        @font-face{font-family:"ABC Social Extended";font-style:normal;font-weight:700;font-display:swap;
+        src:url("{{cdn 'assets/fonts/ABCSocialExtended-Bold.woff2'}}") format("woff2")}
+        
+        @font-face{font-family:"ABC Arizona Text";font-style:normal;font-weight:400;font-display:swap;
+        src:url("{{cdn 'assets/fonts/ABCArizonaText-Regular.woff2'}}") format("woff2")}
+        
+        @font-face{font-family:"ABC Arizona Text";font-style:italic;font-weight:400;font-display:swap;
+        src:url("{{cdn 'assets/fonts/ABCArizonaText-RegularItalic.woff2'}}") format("woff2")}
+        
+        @font-face{font-family:"ABC Arizona Text";font-style:italic;font-weight:300;font-display:swap;
+        src:url("{{cdn 'assets/fonts/ABCArizonaText-LightItalic.woff2'}}") format("woff2")}
+        </style>
+
+        {{{stylesheet '/assets/css/theme.css'}}}
+
+        {{{head.scripts}}}
+
+
+        {{~inject 'zoomSize' theme_settings.zoom_size}}
+        {{~inject 'productSize' theme_settings.product_size}}
+        {{~inject 'genericError' (lang 'common.generic_error')}}
+        {{~inject 'urls' urls}}
+        {{~inject 'secureBaseUrl' settings.secure_base_url}}
+        {{~inject 'cartId' cart_id}}
+        {{~inject 'template' template}}
+        {{~inject 'validationDictionaryJSON' (langJson 'validation_messages')}}
+        {{~inject 'validationFallbackDictionaryJSON' (langJson 'validation_fallback_messages')}}
+        {{~inject 'validationDefaultDictionaryJSON' (langJson 'validation_default_messages')}}
+        {{~inject 'carouselArrowAndDotAriaLabel' (lang 'carousel.arrow_and_dot_aria_label')}}
+        {{~inject 'carouselActiveDotAriaLabel' (lang 'carousel.active_dot_aria_label')}}
+        {{~inject 'carouselContentAnnounceMessage' (lang 'carousel.content_announce_message')}}
+        {{~inject 'giftWrappingRemoveMessage' (lang 'cart.gift_wrapping.remove_confirm')}}
+        {{~inject 'accountStorefrontToken' settings.storefront_api.token}}
+
+        <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    </head>
+    <body class="{{#if page_type}}page_type__{{snakecase (lowercase page_type)}}{{/if}} {{#if page}}page_title__{{snakecase (lowercase page.title)}}{{/if}} {{#if category}}page_title__{{snakecase (lowercase category.name)}}{{/if}}" data-customer-region="{{getVar 'globalCustomerRegion'}}" {{#if customer}} data-auth="true" {{else}} data-auth="false" {{/if}}{{#if brand}} data-account-current-brand-id="{{brand.id}}"{{/if}}{{#if category}} data-account-current-category-id="{{category.id}}"{{/if}}>
+        {{#if customer}}
+            <script nonce="{{nonce}}">
+                (function () {
+                    var modeKey = 'account-policy-mode-{{customer.id}}';
+                    var configKey = 'account-policy-config-{{customer.id}}';
+                    var mode = null;
+
+                    // Older code cached unrestricted accounts. Remove only that stale
+                    // value; restricted product/brand configurations remain cached.
+                    try {
+                        mode = window.sessionStorage.getItem(modeKey);
+                        var cachedConfig = window.sessionStorage.getItem(configKey);
+                        var cachedEntry = cachedConfig ? JSON.parse(cachedConfig) : null;
+                        if (mode === 'unrestricted' || (cachedEntry && cachedEntry.unrestricted === true)) {
+                            window.sessionStorage.removeItem(modeKey);
+                            window.sessionStorage.removeItem(configKey);
+                            mode = null;
+                        } else {
+                            var cachedConfiguration = cachedEntry && cachedEntry.configuration;
+                            var currentCategoryId = Number(document.body.getAttribute('data-account-current-category-id') || 0);
+                            var cacheIsFresh = Number(cachedEntry && cachedEntry.cachedAt || 0) > 0
+                                && (Date.now() - Number(cachedEntry.cachedAt)) < (30 * 60 * 1000);
+                            var hiddenCategoryIds = cachedConfiguration && Array.isArray(cachedConfiguration.categoryIds)
+                                ? cachedConfiguration.categoryIds.map(Number)
+                                : [];
+
+                            if (cacheIsFresh
+                                && currentCategoryId
+                                && cachedConfiguration
+                                && cachedConfiguration.type === 'brand'
+                                && hiddenCategoryIds.indexOf(currentCategoryId) !== -1) {
+                                document.documentElement.style.display = 'none';
+                                window.location.replace('/');
+                                return;
+                            }
+                        }
+                    } catch (error) {
+                        window.sessionStorage.removeItem(modeKey);
+                        window.sessionStorage.removeItem(configKey);
+                        mode = null;
+                    }
+
+                    document.documentElement.classList.add('account-policy-loading');
+                    if (mode === 'product' || mode === 'brand') {
+                        document.documentElement.classList.add('account-policy-' + mode);
+                    }
+                }());
+            </script>
+        {{/if}}
+        <svg data-src="{{cdn 'img/icon-sprite.svg'}}" class="icons-svg-sprite"></svg>
+
+        {{#if customer}}
+
+            {{> components/common/header }}
+            {{#if customer}}
+                {{#if page_type '===' 'product'}}
+                    <div class="account-policy-page-skeleton account-policy-page-skeleton--product" aria-hidden="true">
+                        <span class="account-policy-page-skeleton__media"></span>
+                        <span class="account-policy-page-skeleton__details">
+                            <i></i><i></i><i></i><i></i><i></i>
+                        </span>
+                    </div>
+                {{/if}}
+            {{/if}}
+            {{> components/common/body }}
+            {{> components/common/footer }}
+            
+            <div style="display:none;">
+                 <a class="customerLogoutButton" href="{{urls.auth.logout}}" aria-label="{{lang 'common.logout'}}">Sign out</a>
+            </div>
+            
+            <script>
+                async function customerLogout(params) {
+                    window.sessionStorage.removeItem('twelve_punchout_session');
+                    document.cookie = "SHOP_TOKEN=; Max-Age=0; path=/";
+                    document.cookie = "SHOP_SESSION_TOKEN=; Max-Age=0; path=/";
+                    setTimeout(() => {
+                        $(".customerLogoutButton")[0].click();
+                    }, 1000);
+                }
+            </script>
+
+            <button class="card-wishlist-scrim"
+                    aria-label="Close wish list menu"
+                    data-wishlist-mobile-close
+                    type="button"
+            ></button>
+
+            <script nonce="{{nonce}}">
+                document.querySelectorAll('[data-alphabetize-brands]').forEach(function (list) {
+                    var brands = Array.prototype.slice.call(list.children);
+                    brands.sort(function (brandA, brandB) {
+                        return brandA.textContent.trim().localeCompare(
+                            brandB.textContent.trim(),
+                            undefined,
+                            { sensitivity: 'base' }
+                        );
+                    });
+                    brands.forEach(function (brand) {
+                        list.appendChild(brand);
+                    });
+                });
+            </script>
+            <script nonce="{{nonce}}">
+                (function () {
+                    'use strict';
+
+                    if (document.body.getAttribute('data-auth') !== 'true') return;
+
+                    // B2B authentication constants documented by BigCommerce.
+                    var B2B_GRAPHQL_URL = 'https://api-b2b.bigcommerce.com/graphql';
+                    var B2B_CLIENT_ID = 'dl7c39mdpul6hyc489yk0vzxl6jesyx';
+                    var ACCOUNT_CONFIGURATOR_FIELD = 'Account Configurator';
+                    var channelId = Number('{{settings.channel_id}}') || 1;
+                    var POLICY_CACHE_MAX_AGE = 30 * 60 * 1000;
+                    var policyModeCacheKey = 'account-policy-mode-{{#if customer}}{{customer.id}}{{else}}guest{{/if}}';
+                    var policyConfigCacheKey = 'account-policy-config-{{#if customer}}{{customer.id}}{{else}}guest{{/if}}';
+
+                    var contextValue = {{jsContext}};
+                    var context = contextValue;
+
+                    if (typeof contextValue === 'string') {
+                        try {
+                            context = JSON.parse(contextValue);
+                        } catch (error) {
+                            context = {};
+                            console.warn('[Account Configurator] Theme context JSON is invalid.');
+                        }
+                    }
+
+                    var storefrontToken = context.accountStorefrontToken;
+                    var policy = null;
+                    var productMeta = new Map();
+                    var pendingIds = new Set();
+                    var applyTimer = null;
+                    var observer = null;
+                    var cartBlocked = false;
+                    var autoLoadingProducts = false;
+                    var redirectingToHome = false;
+                    var configuredBrandFacetsReady = false;
+                    var accountBrandsRequest = null;
+                    var configurationRequest = null;
+                    var guardsInstalled = false;
+                    var policyApplied = false;
+
+                    function numberSet(values) {
+                        return new Set((Array.isArray(values) ? values : []).map(Number).filter(function (id) {
+                            return Number.isInteger(id) && id > 0;
+                        }));
+                    }
+
+                    function normalize(configuration) {
+                        if (!configuration || typeof configuration !== 'object' || Array.isArray(configuration)) return null;
+                        if (['product', 'brand'].indexOf(configuration.type) === -1) return null;
+
+                        var normalized = {
+                            type: configuration.type,
+                            categoryIds: numberSet(configuration.categoryIds),
+                            brandIds: numberSet(configuration.brandIds),
+                            prohibitedBrandIds: numberSet(configuration.prohibitedBrandIds),
+                            products: numberSet(configuration.products)
+                        };
+
+                        var hasConfiguredIds = normalized.categoryIds.size > 0
+                            || normalized.brandIds.size > 0
+                            || normalized.prohibitedBrandIds.size > 0
+                            || normalized.products.size > 0;
+
+                        // An explicitly saved Brand Levels policy with no allowed brands
+                        // means that brand browsing is disabled for this company.
+                        return configuration.type === 'brand' || hasConfiguredIds ? normalized : null;
+                    }
+
+                    function finishLoading() {
+                        if (redirectingToHome) return;
+                        document.documentElement.classList.remove('account-policy-loading');
+                        document.documentElement.classList.add('account-policy-ready');
+                        document.querySelectorAll('[aria-busy="true"]').forEach(function (element) {
+                            element.removeAttribute('aria-busy');
+                        });
+                    }
+
+                    function setBusy() {
+                        document.querySelectorAll('.twelve-header, main, .productGrid, [data-cart-content]').forEach(function (element) {
+                            element.setAttribute('aria-busy', 'true');
+                        });
+                    }
+
+                    function productAllowed(id, meta) {
+                        if (!policy) return true;
+
+                        var productId = Number(id);
+                        var brandId = Number(meta && meta.brandId || 0);
+
+                        // In product mode, the configured product ID is authoritative.
+                        // Missing catalog metadata must not hide an explicitly allowed product.
+                        if (policy.type === 'product' && !policy.products.has(productId)) return false;
+                        if (brandId && policy.prohibitedBrandIds.has(brandId)) return false;
+                        if (policy.type === 'product') return true;
+
+                        if (!meta) return false;
+                        return policy.brandIds.has(meta.brandId);
+                    }
+
+                    function cardId(card) {
+                        return Number(card.getAttribute('data-entity-id') || card.getAttribute('data-product-id') || 0);
+                    }
+
+                    function normalizedBrandName(value) {
+                        return String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+                    }
+
+                    function populateAccountBrandSelects(brands) {
+                        var selects = document.querySelectorAll('[data-account-brand-select]');
+                        if (!selects.length) return;
+
+                        var allowedBrands = policy && policy.brandIds.size ? policy.brandIds : null;
+                        var prohibitedBrands = policy ? policy.prohibitedBrandIds : new Set();
+                        var visibleBrands = brands.filter(function (brand) {
+                            return brand.id
+                                && brand.name
+                                && (!allowedBrands || allowedBrands.has(brand.id))
+                                && !prohibitedBrands.has(brand.id);
+                        }).sort(function (brandA, brandB) {
+                            return brandA.name.localeCompare(brandB.name, undefined, { sensitivity: 'base' });
+                        });
+
+                        selects.forEach(function (select) {
+                            var selectedValue = select.value;
+                            while (select.options.length > 1) select.remove(1);
+                            visibleBrands.forEach(function (brand) {
+                                var option = document.createElement('option');
+                                option.value = brand.name;
+                                option.textContent = brand.name;
+                                option.setAttribute('data-brand-id', String(brand.id));
+                                select.appendChild(option);
+                            });
+                            if (Array.prototype.some.call(select.options, function (option) {
+                                return option.value === selectedValue;
+                            })) select.value = selectedValue;
+                        });
+                    }
+
+                    function loadAccountBrandSelects() {
+                        if (!document.querySelector('[data-account-brand-select]')) return Promise.resolve();
+                        if (accountBrandsRequest) {
+                            return accountBrandsRequest.then(populateAccountBrandSelects);
+                        }
+
+                        function navigationBrands() {
+                            var brandsById = new Map();
+                            document.querySelectorAll('[data-account-brand-id]').forEach(function (link) {
+                                var id = Number(link.getAttribute('data-account-brand-id') || 0);
+                                var name = String(link.textContent || '').replace(/\s+/g, ' ').trim();
+                                if (id && name) brandsById.set(id, { id: id, name: name });
+                            });
+                            return Array.from(brandsById.values());
+                        }
+
+                        if (!storefrontToken) {
+                            populateAccountBrandSelects(navigationBrands());
+                            return Promise.resolve();
+                        }
+
+                        function loadPage(afterCursor, brands) {
+                            return fetch('/graphql', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: { 'Authorization': 'Bearer ' + storefrontToken, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    query: 'query AccountFormBrands($after:String){site{brands(first:50,after:$after){edges{node{entityId name}}pageInfo{hasNextPage endCursor}}}}',
+                                    variables: { after: afterCursor || null }
+                                })
+                            }).then(function (response) {
+                                if (!response.ok) throw new Error('Brand options could not be loaded.');
+                                return response.json();
+                            }).then(function (payload) {
+                                var connection = payload && payload.data && payload.data.site && payload.data.site.brands;
+                                (connection && connection.edges || []).forEach(function (edge) {
+                                    brands.push({ id: Number(edge.node.entityId), name: String(edge.node.name || '').trim() });
+                                });
+                                if (connection && connection.pageInfo && connection.pageInfo.hasNextPage) {
+                                    return loadPage(connection.pageInfo.endCursor, brands);
+                                }
+                                return brands;
+                            });
+                        }
+
+                        accountBrandsRequest = loadPage(null, []).catch(function (error) {
+                            console.warn('[Account Configurator] ' + error.message);
+                            return navigationBrands();
+                        });
+                        return accountBrandsRequest.then(populateAccountBrandSelects);
+                    }
+
+                    function isCategoryOrSearchPage() {
+                        return document.body.classList.contains('page_type__category')
+                            || document.body.classList.contains('page_type__search');
+                    }
+
+                    function facetBrandId(link) {
+                        try {
+                            var url = new URL(link.getAttribute('href') || '', window.location.origin);
+                            return Number(url.searchParams.get('brand') || url.searchParams.get('brand[]') || 0);
+                        } catch (error) {
+                            return 0;
+                        }
+                    }
+
+                    function syncConfiguredBrandFacet() {
+                        if (!policy || policy.type !== 'brand' || !isCategoryOrSearchPage()) return;
+                        var facetHeading = document.querySelector('[accordion-title="brand"]');
+                        var facetBlock = facetHeading && facetHeading.closest('.accordion-block');
+                        if (facetBlock) {
+                            facetBlock.querySelectorAll('.navList-action[data-faceted-search-facet]').forEach(function (link) {
+                                var brandId = facetBrandId(link);
+                                if (brandId) link.classList.toggle('is-selected', policy.brandIds.has(brandId));
+                            });
+                            facetBlock.classList.add('account-policy-hidden');
+                            facetBlock.setAttribute('aria-hidden', 'true');
+                        }
+
+                        // Keep the enforced brand parameters in every regular facet URL.
+                        // BigCommerce can then update the PLP/search results through its
+                        // normal AJAX flow instead of the policy needing a page redirect.
+                        document.querySelectorAll('a[data-faceted-search-facet]').forEach(function (link) {
+                            if (facetBlock && facetBlock.contains(link)) return;
+                            link.setAttribute('href', configuredBrandUrl(link.getAttribute('href')));
+                        });
+
+                        hideConfiguredBrandSelections();
+                    }
+
+                    function configuredBrandUrl(href) {
+                        var url = new URL(href || window.location.href, window.location.origin);
+                        url.searchParams.delete('brand');
+                        url.searchParams.delete('brand[]');
+                        Array.from(policy.brandIds).sort(function (a, b) { return a - b; }).forEach(function (id) {
+                            url.searchParams.append('brand', String(id));
+                        });
+                        url.searchParams.set('_bc_fsnf', '1');
+                        return url.pathname + '?' + url.searchParams.toString() + url.hash;
+                    }
+
+                    function hideConfiguredBrandSelections() {
+                        if (!policy || policy.type !== 'brand' || !isCategoryOrSearchPage()) return;
+
+                        document.querySelectorAll('.facetedSearch-refineFilters').forEach(function (refineFilters) {
+                            refineFilters.querySelectorAll('[data-account-selected-facet="brand"]').forEach(function (item) {
+                                item.remove();
+                            });
+
+                            var remainingItems = refineFilters.querySelectorAll('.inlineList li').length;
+                            var clearAll = refineFilters.querySelector(':scope > a[data-faceted-search-facet]');
+                            refineFilters.classList.toggle('account-policy-hidden', remainingItems === 0);
+
+                            if (clearAll) {
+                                clearAll.classList.toggle('account-policy-hidden', remainingItems === 0);
+                                clearAll.setAttribute('href', configuredBrandUrl(clearAll.getAttribute('href')));
+                            }
+
+                            var facetContainer = refineFilters.closest('#faceted-search-container') || document;
+                            facetContainer.querySelectorAll('[data-twelve-mobile-filter-clear]').forEach(function (button) {
+                                button.classList.toggle('account-policy-hidden', remainingItems === 0);
+                            });
+                            facetContainer.querySelectorAll('[data-twelve-mobile-filter-count]').forEach(function (count) {
+                                count.textContent = remainingItems || '';
+                            });
+                        });
+                    }
+
+                    function ensureConfiguredBrandFacets() {
+                        if (!policy || policy.type !== 'brand' || !isCategoryOrSearchPage() || policy.brandIds.size === 0) {
+                            return false;
+                        }
+                        if (configuredBrandFacetsReady) return false;
+
+                        var url = new URL(window.location.href);
+                        var expectedIds = Array.from(policy.brandIds).sort(function (a, b) { return a - b; });
+                        var currentIds = url.searchParams.getAll('brand').concat(url.searchParams.getAll('brand[]')).map(Number).filter(function (id) {
+                            return Number.isInteger(id) && id > 0;
+                        }).sort(function (a, b) { return a - b; });
+                        var alreadySelected = expectedIds.length === currentIds.length
+                            && expectedIds.every(function (id, index) { return id === currentIds[index]; });
+
+                        if (alreadySelected) {
+                            configuredBrandFacetsReady = true;
+                            return false;
+                        }
+
+                        url.searchParams.delete('brand');
+                        url.searchParams.delete('brand[]');
+                        expectedIds.forEach(function (id) { url.searchParams.append('brand', String(id)); });
+                        url.searchParams.set('_bc_fsnf', '1');
+                        redirectingToHome = true;
+                        window.location.replace(url.pathname + '?' + url.searchParams.toString() + url.hash);
+                        return true;
+                    }
+
+                    function syncBrandFacet(grid, listing) {
+                        if (!grid || !listing) return;
+
+                        var visibleBrandCounts = new Map();
+                        grid.querySelectorAll(':scope > .product:not(.account-policy-hidden) .card[data-product-brand]').forEach(function (card) {
+                            var brandName = normalizedBrandName(card.getAttribute('data-product-brand'));
+                            if (brandName) visibleBrandCounts.set(brandName, (visibleBrandCounts.get(brandName) || 0) + 1);
+                        });
+
+                        var facetHeading = document.querySelector('[accordion-title="brand"]');
+                        var facetBlock = facetHeading && facetHeading.closest('.accordion-block');
+                        if (!facetBlock) return;
+
+                        var visibleOptions = 0;
+                        facetBlock.querySelectorAll('.navList-item').forEach(function (item) {
+                            var link = item.querySelector('.navList-action');
+                            if (!link) return;
+
+                            var brandName = normalizedBrandName(Array.prototype.reduce.call(link.childNodes, function (text, node) {
+                                return node.nodeType === Node.TEXT_NODE ? text + ' ' + node.textContent : text;
+                            }, ''));
+                            var count = visibleBrandCounts.get(brandName) || 0;
+                            var countElement = link.querySelector('.twelve-facet-option-count');
+
+                            item.classList.toggle('account-policy-hidden', count === 0);
+                            if (countElement) countElement.textContent = String(count);
+                            if (count > 0) visibleOptions += 1;
+                        });
+
+                        facetBlock.classList.toggle(
+                            'account-policy-hidden',
+                            (policy.type === 'brand' && isCategoryOrSearchPage()) || visibleOptions === 0
+                        );
+                    }
+
+                    function collectProductIds(root) {
+                        var ids = [];
+                        (root || document).querySelectorAll('[data-entity-id], [data-product-id]').forEach(function (element) {
+                            var id = cardId(element);
+                            if (id > 0 && !productMeta.has(id)) ids.push(id);
+                        });
+                        if (context.productId && !productMeta.has(Number(context.productId))) ids.push(Number(context.productId));
+                        return Array.from(new Set(ids));
+                    }
+
+                    function approvedProductIdsForCategory(categoryId) {
+                        return Array.from(policy.products).filter(function (productId) {
+                            var meta = productMeta.get(productId);
+                            return meta
+                                && productAllowed(productId, meta)
+                                && meta.categoryIds.has(Number(categoryId));
+                        });
+                    }
+
+                    function graphQLProducts(ids) {
+                        if (!ids.length || !storefrontToken) return Promise.resolve();
+                        var chunks = [];
+                        for (var index = 0; index < ids.length; index += 50) chunks.push(ids.slice(index, index + 50));
+
+                        function loadChunk(chunk, attempt) {
+                            return fetch('/graphql', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: { 'Authorization': 'Bearer ' + storefrontToken, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    query: 'query AccountProducts($ids:[Int!]){site{products(entityIds:$ids,first:50){edges{node{entityId brand{entityId} categories(first:50){edges{node{entityId}}}}}}}}',
+                                    variables: { ids: chunk }
+                                })
+                            }).then(function (response) {
+                                if (!response.ok) throw new Error('Catalog lookup failed.');
+                                return response.json();
+                            }).then(function (payload) {
+                                if (payload && payload.errors && payload.errors.length) {
+                                    throw new Error(payload.errors.map(function (error) {
+                                        return error.message;
+                                    }).join(' '));
+                                }
+                                var edges = payload && payload.data && payload.data.site && payload.data.site.products && payload.data.site.products.edges;
+                                if (!Array.isArray(edges)) throw new Error('Catalog lookup returned no product data.');
+                                (edges || []).forEach(function (edge) {
+                                    var node = edge.node;
+                                    productMeta.set(Number(node.entityId), {
+                                        brandId: Number(node.brand && node.brand.entityId || 0),
+                                        categoryIds: new Set(((node.categories && node.categories.edges) || []).map(function (category) {
+                                            return Number(category.node.entityId);
+                                        }))
+                                    });
+                                });
+                                chunk.forEach(function (id) {
+                                    if (!productMeta.has(id)) productMeta.set(id, { brandId: 0, categoryIds: new Set() });
+                                });
+                            }).catch(function (error) {
+                                if (attempt < 2) return loadChunk(chunk, attempt + 1);
+                                throw error;
+                            });
+                        }
+
+                        return Promise.all(chunks.map(function (chunk) {
+                            return loadChunk(chunk, 0);
+                        }));
+                    }
+
+                    function filterProducts(root) {
+                        (root || document).querySelectorAll('.card[data-entity-id], .product[data-product-id]').forEach(function (card) {
+                            var id = cardId(card);
+                            var container = card.matches('.product') ? card : (card.closest('.product') || card);
+                            var meta = productMeta.get(id);
+
+                            // Product cards already contain the BigCommerce brand ID. Use it
+                            // when the Storefront GraphQL lookup is missing or unavailable.
+                            if (!meta) {
+                                meta = {
+                                    brandId: Number(card.getAttribute('data-brand-id') || 0),
+                                    categoryIds: new Set()
+                                };
+                            }
+
+                            container.classList.toggle('account-policy-hidden', !productAllowed(id, meta));
+                            container.classList.remove('account-policy-pending');
+                        });
+                        document.querySelectorAll('.productGrid').forEach(function (grid) {
+                            var products = Array.prototype.slice.call(grid.querySelectorAll(':scope > .product'));
+                            var visibleProducts = products.filter(function (item) {
+                                return !item.classList.contains('account-policy-hidden');
+                            });
+                            var visible = visibleProducts.length > 0;
+                            var section = grid.closest('section');
+                            if (section) section.classList.toggle('account-policy-hidden', !visible);
+
+                            var listing = grid.closest('#product-listing-container') || grid.parentElement;
+                            var hasMoreProductsToCheck = Boolean(
+                                listing && listing.querySelector('[data-twelve-load-more-button]')
+                            );
+                            var page = grid.closest('.twelve-category-page');
+                            var emptyMessage = page && page.querySelector('[data-account-empty-products]');
+                            if (emptyMessage) {
+                                var showEmptyMessage = !visible && !hasMoreProductsToCheck;
+                                emptyMessage.hidden = !showEmptyMessage;
+                                emptyMessage.classList.toggle('account-policy-hidden', !showEmptyMessage);
+                            }
+
+                            var totalSource = listing && listing.querySelector('[data-twelve-total-source]');
+
+                            if (listing) {
+                                listing.querySelectorAll('.twelve-category-toolbar, [data-twelve-load-more]').forEach(function (summary) {
+                                    summary.classList.toggle('account-policy-hidden', !visible);
+                                });
+                            }
+
+                            if (listing && totalSource) {
+                                var originalTotal = Number(totalSource.getAttribute('data-twelve-total-source')) || products.length;
+                                var hasMorePages = Boolean(listing.querySelector('[data-twelve-load-more-button]'));
+                                var hiddenLoaded = products.length - visibleProducts.length;
+                                var filteredTotal = hasMorePages
+                                    ? Math.max(visibleProducts.length, originalTotal - hiddenLoaded)
+                                    : visibleProducts.length;
+
+                                if (policy.type === 'product' && document.body.classList.contains('page_type__category')) {
+                                    var currentCategoryId = Number(
+                                        document.body.getAttribute('data-account-current-category-id') || 0
+                                    );
+                                    if (currentCategoryId) {
+                                        var approvedCategoryTotal = approvedProductIdsForCategory(currentCategoryId).length;
+                                        filteredTotal = Math.max(visibleProducts.length, approvedCategoryTotal);
+                                    }
+                                }
+
+                                listing.querySelectorAll('[data-twelve-showing-count], [data-twelve-loaded-count]').forEach(function (count) {
+                                    count.textContent = String(visibleProducts.length);
+                                });
+                                listing.querySelectorAll('[data-twelve-total-count], [data-twelve-load-total]').forEach(function (count) {
+                                    count.textContent = String(filteredTotal);
+                                });
+
+                                var progress = listing.querySelector('[data-twelve-load-progress]');
+                                if (progress) {
+                                    progress.style.width = (filteredTotal > 0
+                                        ? Math.min(100, (visibleProducts.length / filteredTotal) * 100)
+                                        : 0) + '%';
+                                }
+
+                                syncBrandFacet(grid, listing);
+                            }
+                        });
+                    }
+
+                    function filterNavigation() {
+                        document.querySelectorAll('[data-account-brand-id]').forEach(function (link) {
+                            var brandId = Number(link.getAttribute('data-account-brand-id'));
+                            var hidden = policy.prohibitedBrandIds.has(brandId) || (policy.type === 'brand' && !policy.brandIds.has(brandId));
+                            (link.closest('li') || link).classList.toggle('account-policy-hidden', hidden);
+                        });
+
+                        var categoryContainerSelector = [
+                            '.twelve-nav-item[data-account-category-id]',
+                            '.twelve-category-group[data-account-category-id]',
+                            'li:has(> a[data-account-category-id])'
+                        ].join(',');
+                        var navigation = document.querySelector('.twelve-navigation');
+                        var categoryContainers = navigation
+                            ? Array.prototype.slice.call(navigation.querySelectorAll(categoryContainerSelector))
+                            : [];
+
+                        if (policy.type === 'brand') {
+                            // Work from leaves to roots. An explicit numeric ID always hides
+                            // its node; an unlisted parent remains only while a child survives.
+                            categoryContainers.slice().reverse().forEach(function (container) {
+                                var ownLink = container.matches('[data-account-category-id]')
+                                    ? container
+                                    : container.querySelector(':scope > a[data-account-category-id]');
+                                var categoryId = Number(ownLink && ownLink.getAttribute('data-account-category-id') || 0);
+                                var childContainers = categoryContainers.filter(function (candidate) {
+                                    return candidate !== container
+                                        && candidate.parentElement
+                                        && candidate.parentElement.closest(categoryContainerSelector) === container;
+                                });
+                                var originallyHadChildren = childContainers.length > 0;
+                                var hasVisibleChild = childContainers.some(function (child) {
+                                    return !child.classList.contains('account-policy-hidden');
+                                });
+                                var hidden = policy.categoryIds.has(categoryId)
+                                    || (originallyHadChildren && !hasVisibleChild);
+
+                                container.classList.toggle('account-policy-hidden', hidden);
+                            });
+                        } else {
+                            // Product-level navigation treats category IDs as the allowed tree.
+                            categoryContainers.forEach(function (container) {
+                                var ownLink = container.matches('[data-account-category-id]')
+                                    ? container
+                                    : container.querySelector(':scope > a[data-account-category-id]');
+                                var categoryId = Number(ownLink && ownLink.getAttribute('data-account-category-id') || 0);
+                                var descendantIds = Array.prototype.map.call(
+                                    container.querySelectorAll('a[data-account-category-id]'),
+                                    function (link) { return Number(link.getAttribute('data-account-category-id')); }
+                                );
+                                var visible = policy.categoryIds.has(categoryId)
+                                    || descendantIds.some(function (id) { return policy.categoryIds.has(id); });
+                                container.classList.toggle('account-policy-hidden', !visible);
+                            });
+                        }
+
+                        document.querySelectorAll('[data-account-brands-menu]').forEach(function (menu) {
+                            menu.classList.toggle(
+                                'account-policy-hidden',
+                                policy.type === 'brand' && policy.brandIds.size === 0
+                            );
+                        });
+
+                        var hiddenUrls = new Set();
+                        document.querySelectorAll('.twelve-navigation a.account-policy-hidden, .twelve-navigation .account-policy-hidden a').forEach(function (link) {
+                            try { hiddenUrls.add(new URL(link.href, window.location.origin).pathname.replace(/\/$/, '')); } catch (error) { /* Ignore malformed Page Builder links. */ }
+                        });
+                        document.querySelectorAll('a[href]').forEach(function (link) {
+                            if (link.closest('.twelve-navigation')) return;
+                            var path;
+                            try { path = new URL(link.href, window.location.origin).pathname.replace(/\/$/, ''); } catch (error) { return; }
+                            var target = link.closest('li') || link;
+                            target.classList.toggle('account-policy-category-hidden', hiddenUrls.has(path));
+                        });
+                    }
+
+                    function loadUntilVisibleProducts() {
+                        var listing = document.querySelector('#product-listing-container');
+                        var grid = listing && listing.querySelector('.productGrid');
+                        var visibleProduct = grid && grid.querySelector(':scope > .product:not(.account-policy-hidden)');
+                        var button = listing && listing.querySelector('[data-twelve-load-more-button]');
+
+                        if (!grid || !button || (visibleProduct && policy.type !== 'product')) return Promise.resolve();
+
+                        if (policy.type === 'product' && document.body.classList.contains('page_type__category')) {
+                            var currentCategoryId = Number(
+                                document.body.getAttribute('data-account-current-category-id') || 0
+                            );
+
+                            if (currentCategoryId) {
+                                var expectedProductIds = approvedProductIdsForCategory(currentCategoryId);
+                                var loadedProductIds = new Set();
+
+                                grid.querySelectorAll(':scope > .product [data-entity-id], :scope > .product[data-product-id]').forEach(function (card) {
+                                    var productId = cardId(card);
+                                    if (productId) loadedProductIds.add(productId);
+                                });
+
+                                var categoryProductsLoaded = expectedProductIds.every(function (productId) {
+                                    return loadedProductIds.has(productId);
+                                });
+
+                                if (categoryProductsLoaded) {
+                                    button.remove();
+                                    filterProducts(document);
+                                    return Promise.resolve();
+                                }
+                            }
+                        }
+
+                        var nextUrl = button.getAttribute('href');
+                        if (!nextUrl) return Promise.resolve();
+
+                        autoLoadingProducts = true;
+                        button.classList.add('is-loading');
+                        button.setAttribute('aria-disabled', 'true');
+                        button.innerHTML = '<span>Loading…</span>';
+
+                        function fetchNextProductPage(attempt) {
+                            return fetch(nextUrl, { credentials: 'same-origin' }).then(function (response) {
+                                if (!response.ok) throw new Error('Unable to load the next product page.');
+                                return response.text();
+                            }).catch(function (error) {
+                                if (attempt < 2) return fetchNextProductPage(attempt + 1);
+                                throw error;
+                            });
+                        }
+
+                        return fetchNextProductPage(0)
+                            .then(function (html) {
+                                var page = new DOMParser().parseFromString(html, 'text/html');
+                                var newProducts = Array.prototype.slice.call(
+                                    page.querySelectorAll('#product-listing-container .productGrid > .product')
+                                );
+                                var nextButton = page.querySelector('[data-twelve-load-more-button]');
+
+                                var existingProductIds = new Set();
+                                grid.querySelectorAll(':scope > .product').forEach(function (product) {
+                                    var productCard = product.matches('[data-entity-id], [data-product-id]')
+                                        ? product
+                                        : product.querySelector('[data-entity-id], [data-product-id]');
+                                    var productId = productCard ? cardId(productCard) : 0;
+                                    if (productId) existingProductIds.add(productId);
+                                });
+
+                                var appendedProducts = 0;
+                                newProducts.forEach(function (product) {
+                                    var productCard = product.matches('[data-entity-id], [data-product-id]')
+                                        ? product
+                                        : product.querySelector('[data-entity-id], [data-product-id]');
+                                    var productId = productCard ? cardId(productCard) : 0;
+                                    if (productId && existingProductIds.has(productId)) return;
+                                    if (productId) existingProductIds.add(productId);
+                                    grid.appendChild(product);
+                                    appendedProducts++;
+                                });
+
+                                var followingUrl = nextButton && nextButton.getAttribute('href');
+                                if (followingUrl && (appendedProducts > 0 || followingUrl !== nextUrl)) {
+                                    button.setAttribute('href', followingUrl);
+                                    button.classList.remove('is-loading');
+                                    button.removeAttribute('aria-disabled');
+                                    button.innerHTML = '<span>Load more</span>';
+                                } else {
+                                    button.remove();
+                                }
+
+                                var newIds = collectProductIds(grid);
+                                return graphQLProducts(newIds).then(function () {
+                                    filterProducts(document);
+                                    return loadUntilVisibleProducts();
+                                });
+                            })
+                            .catch(function (error) {
+                                button.classList.remove('is-loading');
+                                button.removeAttribute('aria-disabled');
+                                button.innerHTML = '<span>Load more</span>';
+                                console.warn('[Account Configurator] ' + error.message);
+                            })
+                            .then(function () {
+                                autoLoadingProducts = false;
+                            });
+                    }
+
+                    function blockPdpIfNeeded() {
+                        var productView = document.querySelector('.productView[data-entity-id], .twelve-pdp[data-entity-id]');
+                        var productId = Number(context.productId || (productView && productView.getAttribute('data-entity-id')) || 0);
+                        if (!productId || productAllowed(productId, productMeta.get(productId))) return;
+                        redirectingToHome = true;
+                        window.location.replace('/');
+                    }
+
+                    function resolveCurrentBrandId(afterCursor) {
+                        var brandId = Number(document.body.getAttribute('data-account-current-brand-id') || 0);
+                        var brandProduct = document.querySelector('.page_type__brand .card[data-brand-id], body.page_type__brand .card[data-brand-id]');
+
+                        if (!document.body.classList.contains('page_type__brand')) return Promise.resolve(0);
+                        if (!brandId && brandProduct) {
+                            brandId = Number(brandProduct.getAttribute('data-brand-id') || 0);
+                        }
+
+                        if (!brandId && document.body.classList.contains('page_type__brand')) {
+                            var currentPath = window.location.pathname.replace(/\/$/, '');
+                            var matchingBrandLink = Array.prototype.find.call(
+                                document.querySelectorAll('[data-account-brand-id][href]'),
+                                function (link) {
+                                    return new URL(link.href, window.location.origin).pathname.replace(/\/$/, '') === currentPath;
+                                }
+                            );
+                            brandId = Number(matchingBrandLink && matchingBrandLink.getAttribute('data-account-brand-id') || 0);
+                        }
+
+                        if (brandId) return Promise.resolve(brandId);
+                        if (!storefrontToken) return Promise.resolve(0);
+
+                        return fetch('/graphql', {
+                            method: 'POST',
+                            credentials: 'same-origin',
+                            headers: { 'Authorization': 'Bearer ' + storefrontToken, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                query: 'query AccountBrandPage($after:String){site{brands(first:50,after:$after){edges{node{entityId path}}pageInfo{hasNextPage endCursor}}}}',
+                                variables: { after: afterCursor || null }
+                            })
+                        }).then(function (response) {
+                            if (!response.ok) throw new Error('Brand lookup failed.');
+                            return response.json();
+                        }).then(function (payload) {
+                            var connection = payload && payload.data && payload.data.site && payload.data.site.brands;
+                            var currentPath = window.location.pathname.replace(/\/$/, '');
+                            var match = connection && (connection.edges || []).find(function (edge) {
+                                return String(edge.node.path || '').replace(/\/$/, '') === currentPath;
+                            });
+
+                            if (match) return Number(match.node.entityId);
+                            if (connection && connection.pageInfo && connection.pageInfo.hasNextPage) {
+                                return resolveCurrentBrandId(connection.pageInfo.endCursor);
+                            }
+                            return 0;
+                        }).catch(function (error) {
+                            console.warn('[Account Configurator] ' + error.message);
+                            return 0;
+                        });
+                    }
+
+                    function blockBrandPageIfNeeded() {
+                        var currentPath = window.location.pathname.replace(/\/+$/, '') || '/';
+                        if (policy.type === 'brand' && policy.brandIds.size === 0
+                            && (currentPath === '/brands' || document.body.classList.contains('page_type__brand'))) {
+                            redirectingToHome = true;
+                            window.location.replace('/');
+                            return Promise.resolve();
+                        }
+
+                        return resolveCurrentBrandId().then(function (brandId) {
+                            var isProhibited = brandId && policy.prohibitedBrandIds.has(brandId);
+                            var isOutsideBrandCatalogue = brandId
+                                && policy.type === 'brand'
+                                && !policy.brandIds.has(brandId);
+
+                            if (isProhibited || isOutsideBrandCatalogue) {
+                                redirectingToHome = true;
+                                window.location.replace('/');
+                            }
+                        });
+                    }
+
+                    function blockCategoryPageIfNeeded() {
+                        if (policy.type !== 'brand' || !document.body.classList.contains('page_type__category')) {
+                            return false;
+                        }
+
+                        var categoryId = Number(document.body.getAttribute('data-account-current-category-id') || 0);
+                        var activeCategoryLink = document.querySelector(
+                            '.twelve-navigation a[data-account-category-id][aria-current="page"]'
+                        );
+
+                        if (!categoryId && activeCategoryLink) {
+                            categoryId = Number(activeCategoryLink.getAttribute('data-account-category-id') || 0);
+                        }
+
+                        var categoryIsHidden = categoryId && policy.categoryIds.has(categoryId);
+                        if (!categoryIsHidden && activeCategoryLink) {
+                            categoryIsHidden = Boolean(activeCategoryLink.closest('.account-policy-hidden'));
+                        }
+
+                        if (!categoryIsHidden) return false;
+
+                        redirectingToHome = true;
+                        window.location.replace('/');
+                        return true;
+                    }
+
+                    function applyPolicy(root) {
+                        if (!policy) return Promise.resolve();
+                        if (ensureConfiguredBrandFacets()) return Promise.resolve();
+                        collectProductIds(root).forEach(function (id) { pendingIds.add(id); });
+                        var ids = Array.from(pendingIds);
+                        pendingIds.clear();
+                        return graphQLProducts(ids).then(function () {
+                            filterProducts(root);
+                            syncConfiguredBrandFacet();
+                            filterNavigation();
+                            if (blockCategoryPageIfNeeded()) return Promise.resolve();
+                            blockPdpIfNeeded();
+                            return blockBrandPageIfNeeded().then(loadUntilVisibleProducts);
+                        });
+                    }
+
+                    function showCartWarning(restrictedItemIds) {
+                        document.querySelectorAll('[data-cart-item-id]').forEach(function (line) {
+                            line.classList.toggle('account-policy-restricted-line', restrictedItemIds.has(line.getAttribute('data-cart-item-id')));
+                        });
+                        var cart = document.querySelector('[data-cart]');
+                        if (!cart) return;
+                        var existing = cart.querySelector('[data-account-cart-alert]');
+                        if (restrictedItemIds.size) {
+                            cartBlocked = true;
+                            if (!existing) {
+                                existing = document.createElement('div');
+                                existing.className = 'account-policy-alert';
+                                existing.setAttribute('data-account-cart-alert', '');
+                                existing.setAttribute('role', 'alert');
+                                existing.textContent = 'Your cart contains a product that is unavailable for this account. Remove the highlighted item before checkout.';
+                                var status = cart.querySelector('[data-cart-status]');
+                                (status || cart).prepend(existing);
+                            }
+                            document.querySelectorAll('a[href*="checkout"], [data-primary-checkout-now-action]').forEach(function (button) {
+                                button.setAttribute('aria-disabled', 'true');
+                                button.classList.add('is-disabled');
+                            });
+                        } else {
+                            cartBlocked = false;
+                            if (existing) existing.remove();
+                        }
+                    }
+
+                    function validateCart() {
+                        if (!policy || !context.cartId) return Promise.resolve();
+                        return fetch('/api/storefront/carts/' + encodeURIComponent(context.cartId), { credentials: 'same-origin' })
+                            .then(function (response) { return response.ok ? response.json() : null; })
+                            .then(function (cart) {
+                                if (!cart) return;
+                                var items = [].concat(cart.lineItems && cart.lineItems.physicalItems || [], cart.lineItems && cart.lineItems.digitalItems || []);
+                                var ids = items.map(function (item) { return Number(item.productId); }).filter(Boolean);
+                                return graphQLProducts(ids).then(function () {
+                                    var restricted = new Set();
+                                    items.forEach(function (item) {
+                                        if (!productAllowed(Number(item.productId), productMeta.get(Number(item.productId)))) restricted.add(String(item.id));
+                                    });
+                                    showCartWarning(restricted);
+                                });
+                            }).catch(function () { /* The cart remains usable if validation cannot complete. */ });
+                    }
+
+                    function scheduleApply(root) {
+                        window.clearTimeout(applyTimer);
+                        applyTimer = window.setTimeout(function () {
+                            applyPolicy(root || document).then(validateCart).catch(function () {}).then(finishLoading);
+                        }, 50);
+                    }
+
+                    function installGuards() {
+                        if (guardsInstalled) return;
+                        guardsInstalled = true;
+                        document.addEventListener('click', function (event) {
+                            var eventTarget = event.target instanceof Element
+                                ? event.target
+                                : event.target && event.target.parentElement;
+                            if (!eventTarget) return;
+                            var checkout = eventTarget.closest('a[href*="checkout"], [data-primary-checkout-now-action]');
+                            if (checkout && cartBlocked) {
+                                event.preventDefault();
+                                var alert = document.querySelector('[data-account-cart-alert]');
+                                if (alert) alert.focus();
+                                return;
+                            }
+                            var add = eventTarget.closest('[data-button-type="add-cart"], [data-cart-item-add] button, [data-cart-item-add] input[type="submit"]');
+                            var card = add && add.closest('[data-entity-id]');
+                            var id = card ? cardId(card) : Number(context.productId || 0);
+                            if (add && id && !productAllowed(id, productMeta.get(id))) {
+                                event.preventDefault();
+                                event.stopImmediatePropagation();
+                            }
+                        }, true);
+                        var roots = [document.querySelector('main'), document.querySelector('.twelve-header')].filter(Boolean);
+                        observer = new MutationObserver(function (mutations) {
+                            var relevant = mutations.some(function (mutation) {
+                                return Array.prototype.some.call(mutation.addedNodes, function (node) {
+                                    var selector = '.product, .productGrid, [data-cart-content], .twelve-navigation, [data-account-category-id]';
+                                    return node.nodeType === 1 && (node.matches(selector) || node.querySelector(selector));
+                                });
+                            });
+                            if (relevant && !autoLoadingProducts) scheduleApply(document);
+                        });
+                        roots.forEach(function (root) { observer.observe(root, { childList: true, subtree: true }); });
+                    }
+
+                    function requestB2BGraphQL(query, variables, b2bToken) {
+                        var headers = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+                        if (b2bToken) headers.Authorization = 'Bearer ' + b2bToken;
+
+                        return fetch(B2B_GRAPHQL_URL, {
+                            method: 'POST',
+                            mode: 'cors',
+                            credentials: 'omit',
+                            headers: headers,
+                            body: JSON.stringify({ query: query, variables: variables || {} })
+                        }).then(function (response) {
+                            if (!response.ok) throw new Error('B2B GraphQL request failed (' + response.status + ').');
+                            return response.json();
+                        }).then(function (result) {
+                            if (result.errors && result.errors.length) {
+                                throw new Error(result.errors.map(function (error) { return error.message; }).join(' '));
+                            }
+                            return result.data || {};
+                        });
+                    }
+
+                    function getCurrentCustomerJwt() {
+                        return fetch('/customer/current.jwt?app_client_id=' + B2B_CLIENT_ID, {
+                            credentials: 'same-origin',
+                            headers: { 'Accept': 'application/json' }
+                        }).then(function (response) {
+                            if (!response.ok) throw new Error('Current customer JWT is unavailable.');
+                            return response.json();
+                        }).then(function (result) {
+                            if (!result || typeof result.token !== 'string' || !result.token) {
+                                throw new Error('Current customer response does not contain a token.');
+                            }
+                            return result.token;
+                        });
+                    }
+
+                    function authorizeB2BCustomer(customerJwt) {
+                        var mutation = [
+                            'mutation AccountConfiguratorAuthorization($bcToken: String!, $channelId: Int!) {',
+                            '  authorization(authData: { bcToken: $bcToken, channelId: $channelId }) {',
+                            '    result { token user { id bcId companyInfo { companyId } } }',
+                            '  }',
+                            '}'
+                        ].join('\n');
+
+                        return requestB2BGraphQL(mutation, {
+                            bcToken: customerJwt,
+                            channelId: channelId
+                        }).then(function (data) {
+                            var result = data.authorization && data.authorization.result;
+                            if (!result || !result.token || !result.user || !result.user.id) return null;
+                            return {
+                                token: result.token,
+                                userId: Number(result.user.id),
+                                companyId: Number(result.user.companyInfo && result.user.companyInfo.companyId || 0)
+                            };
+                        });
+                    }
+
+                    function getB2BCompany(session) {
+                        if (!session) return null;
+                        var query = [
+                            'query AccountConfiguratorCompany($userId: Int!) {',
+                            '  userCompany(userId: $userId) {',
+                            '    id companyName companyStatus',
+                            '    extraFields { fieldName fieldValue }',
+                            '  }',
+                            '}'
+                        ].join('\n');
+
+                        return requestB2BGraphQL(query, { userId: session.userId }, session.token)
+                            .then(function (data) { return data.userCompany || null; });
+                    }
+
+                    function getAccountConfiguration(company) {
+                        var fields = company && Array.isArray(company.extraFields) ? company.extraFields : [];
+                        var field = fields.find(function (item) {
+                            return item && item.fieldName === ACCOUNT_CONFIGURATOR_FIELD;
+                        });
+                        var configuration = null;
+
+                        if (field && typeof field.fieldValue === 'string' && field.fieldValue.trim()) {
+                            try { configuration = JSON.parse(field.fieldValue); } catch (error) {
+                                console.warn('[Account Configurator] Saved JSON is invalid.');
+                            }
+                        }
+
+                        console.group('[Account Configurator] B2B company data');
+                        console.log('Company:', {
+                            id: company && company.id || null,
+                            name: company && company.companyName || null,
+                            status: company && company.companyStatus
+                        });
+                        console.log('Extra fields JSON:\n' + JSON.stringify(fields, null, 2));
+                        console.log('Account Configurator JSON:\n' + (configuration
+                            ? JSON.stringify(configuration, null, 2)
+                            : 'No valid Account Configurator value found.'));
+                        console.groupEnd();
+
+                        return configuration;
+                    }
+
+                    function readCachedConfiguration() {
+                        var value = window.sessionStorage.getItem(policyConfigCacheKey);
+                        if (!value) return null;
+
+                        try {
+                            var cached = JSON.parse(value);
+                            var cachedAt = Number(cached && cached.cachedAt || 0);
+                            var isFresh = cachedAt > 0 && (Date.now() - cachedAt) < POLICY_CACHE_MAX_AGE;
+
+                            if (!cached || !cached.configuration || !isFresh) {
+                                window.sessionStorage.removeItem(policyConfigCacheKey);
+                                window.sessionStorage.removeItem(policyModeCacheKey);
+                                return null;
+                            }
+
+                            return cached.configuration;
+                        } catch (error) {
+                            window.sessionStorage.removeItem(policyConfigCacheKey);
+                            window.sessionStorage.removeItem(policyModeCacheKey);
+                            return null;
+                        }
+                    }
+
+                    function policyConfiguration(value) {
+                        if (!value) return null;
+                        return {
+                            type: value.type,
+                            categoryIds: Array.from(value.categoryIds).sort(function (a, b) { return a - b; }),
+                            brandIds: Array.from(value.brandIds).sort(function (a, b) { return a - b; }),
+                            prohibitedBrandIds: Array.from(value.prohibitedBrandIds).sort(function (a, b) { return a - b; }),
+                            products: Array.from(value.products).sort(function (a, b) { return a - b; })
+                        };
+                    }
+
+                    function policyFingerprint(value) {
+                        return JSON.stringify(policyConfiguration(value));
+                    }
+
+                    function cachePolicy(value) {
+                        if (!value) {
+                            window.sessionStorage.removeItem(policyConfigCacheKey);
+                            window.sessionStorage.removeItem(policyModeCacheKey);
+                            return;
+                        }
+                        window.sessionStorage.setItem(policyModeCacheKey, value.type);
+                        window.sessionStorage.setItem(policyConfigCacheKey, JSON.stringify({
+                            cachedAt: Date.now(),
+                            configuration: policyConfiguration(value)
+                        }));
+                    }
+
+                    function clearPolicyEffects() {
+                        document.querySelectorAll('.account-policy-hidden').forEach(function (element) {
+                            element.classList.remove('account-policy-hidden');
+                        });
+                        document.querySelectorAll('.account-policy-category-hidden').forEach(function (element) {
+                            element.classList.remove('account-policy-category-hidden');
+                        });
+                        document.querySelectorAll('.account-policy-pending').forEach(function (element) {
+                            element.classList.remove('account-policy-pending');
+                        });
+                        document.querySelectorAll('.account-policy-restricted-line').forEach(function (element) {
+                            element.classList.remove('account-policy-restricted-line');
+                        });
+                        document.querySelectorAll('[data-account-cart-alert]').forEach(function (element) {
+                            element.remove();
+                        });
+                        if (cartBlocked) {
+                            document.querySelectorAll('a[href*="checkout"], [data-primary-checkout-now-action]').forEach(function (button) {
+                                button.removeAttribute('aria-disabled');
+                                button.classList.remove('is-disabled');
+                            });
+                        }
+                        document.querySelectorAll('[data-account-empty-products]').forEach(function (element) {
+                            element.hidden = true;
+                        });
+                        cartBlocked = false;
+                        policyApplied = false;
+                        policy = null;
+                        cachePolicy(null);
+                        document.documentElement.classList.remove('account-policy-product', 'account-policy-brand');
+                    }
+
+                    function activatePolicy(storeInCache, showLoading) {
+                        if (storeInCache) cachePolicy(policy);
+                        document.documentElement.classList.remove('account-policy-product', 'account-policy-brand');
+                        document.documentElement.classList.add('account-policy-' + policy.type);
+                        if (showLoading !== false) document.documentElement.classList.add('account-policy-loading');
+                        installGuards();
+
+                        var prepareProducts = policy.type === 'product'
+                            ? graphQLProducts(Array.from(policy.products))
+                            : Promise.resolve();
+
+                        policyApplied = false;
+                        return prepareProducts.then(function () {
+                            return Promise.all([
+                                applyPolicy(document),
+                                loadAccountBrandSelects()
+                            ]);
+                        }).then(validateCart).then(function () {
+                            policyApplied = true;
+                        });
+                    }
+
+                    function fetchLatestPolicy() {
+                        return getCurrentCustomerJwt()
+                            .then(authorizeB2BCustomer)
+                            .then(getB2BCompany)
+                            .then(function (company) {
+                                return normalize(getAccountConfiguration(company));
+                            });
+                    }
+
+                    function revalidateConfiguration(showLoading) {
+                        if (configurationRequest) return configurationRequest;
+                        var previousFingerprint = policyFingerprint(policy);
+
+                        configurationRequest = fetchLatestPolicy()
+                            .then(function (latestPolicy) {
+                                var changed = policyFingerprint(latestPolicy) !== previousFingerprint;
+
+                                if (!latestPolicy) {
+                                    if (policy) clearPolicyEffects();
+                                    else cachePolicy(null);
+                                    return loadAccountBrandSelects();
+                                }
+
+                                if (!changed) {
+                                    cachePolicy(latestPolicy);
+                                    if (!policyApplied) return activatePolicy(false, showLoading);
+                                    return loadAccountBrandSelects();
+                                }
+
+                                policy = latestPolicy;
+                                configuredBrandFacetsReady = false;
+                                if (showLoading) setBusy();
+                                return activatePolicy(true, showLoading);
+                            })
+                            .catch(function (error) {
+                                console.warn('[Account Configurator] Configuration revalidation failed:', error.message);
+                            })
+                            .then(function () {
+                                configurationRequest = null;
+                                finishLoading();
+                            }, function (error) {
+                                configurationRequest = null;
+                                finishLoading();
+                                throw error;
+                            });
+
+                        return configurationRequest;
+                    }
+
+                    function loadConfiguration() {
+                        setBusy();
+
+                        var cachedConfiguration = readCachedConfiguration();
+                        if (cachedConfiguration) {
+                            policy = normalize(cachedConfiguration);
+                            if (policy) {
+                                return activatePolicy(false, true)
+                                    .catch(function (error) {
+                                        console.warn('[Account Configurator] Cached restrictions were not applied:', error.message);
+                                    })
+                                    .then(finishLoading)
+                                    .then(function () { return revalidateConfiguration(false); });
+                            }
+                        }
+
+                        return revalidateConfiguration(true);
+                    }
+
+                    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadConfiguration, { once: true });
+                    else loadConfiguration();
+                    window.setTimeout(finishLoading, 8000);
+                }());
+            </script>
+            <script nonce="{{nonce}}">window.__webpack_public_path__ = "{{cdn 'assets/dist/'}}";</script>
+            <script nonce="{{nonce}}">
+                (function () {
+                    'use strict';
+
+                    var selector = '.action-b2b-wishlist[data-b2b-product-id]';
+                    var attempts = 0;
+                    var maxAttempts = 40;
+                    var buyerPortalConfigured = false;
+                    var storefrontToken = '{{settings.storefront_api.token}}';
+                    var productOptionRequests = {};
+
+                    function getShoppingList() {
+                        return window.b2b
+                            && window.b2b.utils
+                            && window.b2b.utils.shoppingList;
+                    }
+
+                    function normalizeRegion(value) {
+                        return String(value || '').trim().toLowerCase().replace(/\s*\/\s*/g, '/');
+                    }
+
+                    function shoppingListsAreEnabled(shoppingList) {
+                        if (!shoppingList || typeof shoppingList.addProductFromPage !== 'function') return false;
+                        if (typeof shoppingList.getButtonInfo !== 'function') return true;
+
+                        try {
+                            return shoppingList.getButtonInfo().enabled !== false;
+                        } catch (error) {
+                            return false;
+                        }
+                    }
+
+                    function configureBuyerPortal() {
+                        if (buyerPortalConfigured
+                            || !window.b2b
+                            || !window.b2b.utils
+                            || typeof window.b2b.utils.setConfig !== 'function') return;
+
+                        window.b2b.utils.setConfig(
+                            'dom.setToShoppingListParentEl',
+                            '#add-to-cart-wrapper, .b2b-card-wishlist-hook'
+                        );
+                        window.b2b.utils.setConfig(
+                            'dom.productView',
+                            '.productView, .b2b-card-product-context'
+                        );
+                        buyerPortalConfigured = true;
+
+                        // Buyer Portal observes DOM changes before applying its new selector.
+                        document.documentElement.appendChild(document.createComment('b2b-card-wishlist'));
+                    }
+
+                    function getPortalButton(button) {
+                        var card = button.closest('.card, .twelve-recent-card');
+                        var cardButton = card
+                            && card.querySelector('.b2b-card-product-context > .b2b-add-to-list');
+                        if (cardButton) return cardButton;
+
+                        // On PDP, Buyer Portal may initialize before related cards exist.
+                        // Its native PDP button can safely bridge the click while the modal is open.
+                        return document.querySelector(
+                            '#add-to-cart-wrapper .b2b-add-to-list, .twelve-pdp-purchase > .b2b-add-to-list'
+                        );
+                    }
+
+                    function movePdpButtonToCard(portalButton, button) {
+                        var context = button.closest('.card, .twelve-recent-card')
+                            && button.closest('.card, .twelve-recent-card').querySelector('.b2b-card-product-context');
+                        if (!context || context.contains(portalButton)) return function () {};
+
+                        var originalParent = portalButton.parentNode;
+                        var originalNextSibling = portalButton.nextSibling;
+                        var restored = false;
+                        var sawPdpRoute = false;
+                        context.appendChild(portalButton);
+
+                        function restore() {
+                            if (restored || !originalParent) return;
+                            restored = true;
+                            if (originalNextSibling && originalNextSibling.parentNode === originalParent) {
+                                originalParent.insertBefore(portalButton, originalNextSibling);
+                            } else {
+                                originalParent.appendChild(portalButton);
+                            }
+                        }
+
+                        var routeCheck = window.setInterval(function () {
+                            var modalIsOpen = window.location.hash.indexOf('/pdp') !== -1;
+                            if (modalIsOpen) sawPdpRoute = true;
+                            if (sawPdpRoute && !modalIsOpen) {
+                                window.clearInterval(routeCheck);
+                                restore();
+                            }
+                        }, 250);
+
+                        window.setTimeout(function () {
+                            window.clearInterval(routeCheck);
+                            restore();
+                        }, 60000);
+
+                        return restore;
+                    }
+
+                    function prepareProductOptions(button) {
+                        var productId = Number(button.getAttribute('data-b2b-product-id'));
+                        var requestedSku = button.getAttribute('data-b2b-product-sku') || '';
+                        var card = button.closest('.card, .twelve-recent-card');
+                        var context = card && card.querySelector('.b2b-card-product-context');
+                        var form = context && context.querySelector('form[data-cart-item-add]');
+                        var skuElement = context && context.querySelector('[data-product-sku]');
+                        var customerRegion = normalizeRegion(document.body.getAttribute('data-customer-region'));
+
+                        if (!context || !form || !productId || !storefrontToken) return Promise.resolve();
+
+                        if (!productOptionRequests[productId]) {
+                            productOptionRequests[productId] = fetch('/graphql', {
+                                method: 'POST',
+                                credentials: 'same-origin',
+                                headers: {
+                                    'Authorization': 'Bearer ' + storefrontToken,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    query: 'query B2BCardVariant($productId:Int!){site{product(entityId:$productId){variants(first:50){edges{node{entityId sku options(first:50){edges{node{entityId displayName values{edges{node{entityId label}}}}}}}}}}}}',
+                                    variables: { productId: productId }
+                                })
+                            }).then(function (response) {
+                                if (!response.ok) throw new Error('Product options could not be loaded.');
+                                return response.json();
+                            }).then(function (payload) {
+                                if (payload.errors && payload.errors.length) {
+                                    throw new Error(payload.errors[0].message || 'Product options could not be loaded.');
+                                }
+                                var product = payload.data && payload.data.site && payload.data.site.product;
+                                return product && product.variants && product.variants.edges || [];
+                            });
+                        }
+
+                        return productOptionRequests[productId].then(function (variantEdges) {
+                            var variants = variantEdges.map(function (edge) { return edge.node; });
+                            var variant = variants.find(function (item) {
+                                return requestedSku && item.sku === requestedSku;
+                            });
+
+                            if (customerRegion) {
+                                variant = variants.find(function (item) {
+                                    return (item.options && item.options.edges || []).some(function (optionEdge) {
+                                        var option = optionEdge.node;
+                                        var valueEdge = option.values && option.values.edges && option.values.edges[0];
+                                        if (normalizeRegion(option.displayName) !== 'bid region' || !valueEdge) return false;
+
+                                        var optionRegion = normalizeRegion(valueEdge.node.label);
+                                        return optionRegion === customerRegion
+                                            || optionRegion.split('/').indexOf(customerRegion) !== -1;
+                                    });
+                                }) || variant;
+                            }
+
+                            variant = variant || variants[0];
+
+                            form.querySelectorAll('[data-b2b-option]').forEach(function (input) {
+                                input.remove();
+                            });
+                            if (!variant) return;
+
+                            if (skuElement && variant.sku) skuElement.textContent = variant.sku;
+                            (variant.options && variant.options.edges || []).forEach(function (optionEdge) {
+                                var option = optionEdge.node;
+                                var valueEdge = option.values && option.values.edges && option.values.edges[0];
+                                if (!option.entityId || !valueEdge || !valueEdge.node.entityId) return;
+
+                                var input = document.createElement('input');
+                                // Buyer Portal's serializer ignores type="hidden" controls.
+                                // The parent context is hidden, so a text input remains invisible.
+                                input.type = 'text';
+                                input.name = 'attribute[' + option.entityId + ']';
+                                input.value = String(valueEdge.node.entityId);
+                                input.setAttribute('data-b2b-option', '');
+                                form.appendChild(input);
+                            });
+                        });
+                    }
+
+                    function updateCardButtons() {
+                        var enabled = shoppingListsAreEnabled(getShoppingList());
+                        var allCardsReady = enabled;
+
+                        document.querySelectorAll(selector).forEach(function (button) {
+                            var cardEnabled = enabled && Boolean(getPortalButton(button));
+                            if (!cardEnabled) allCardsReady = false;
+                            button.hidden = !cardEnabled;
+                            button.setAttribute('aria-disabled', cardEnabled ? 'false' : 'true');
+
+                            var nativeWishlist = button.parentElement
+                                && button.parentElement.querySelector('.card-wishlist');
+                            if (nativeWishlist) nativeWishlist.hidden = cardEnabled;
+                        });
+
+                        return allCardsReady;
+                    }
+
+                    function waitForBuyerPortal() {
+                        configureBuyerPortal();
+                        if (updateCardButtons() || attempts >= maxAttempts) return;
+                        attempts += 1;
+                        window.setTimeout(waitForBuyerPortal, 250);
+                    }
+
+                    function refreshBuyerPortalCards() {
+                        var refreshAttempts = 0;
+                        configureBuyerPortal();
+
+                        // Prompt Buyer Portal's DOM observer after AJAX card renders.
+                        document.documentElement.appendChild(document.createComment('b2b-card-refresh'));
+
+                        function checkCards() {
+                            if (updateCardButtons() || refreshAttempts >= maxAttempts) return;
+                            refreshAttempts += 1;
+                            window.setTimeout(checkCards, 250);
+                        }
+
+                        checkCards();
+                    }
+
+                    window.twelveRefreshB2BWishlistCards = refreshBuyerPortalCards;
+
+                    document.addEventListener('click', function (event) {
+                        var eventTarget = event.target instanceof Element
+                            ? event.target
+                            : event.target && event.target.parentElement;
+                        var button = eventTarget && eventTarget.closest(selector);
+                        if (!button) return;
+
+                        event.preventDefault();
+
+                        var portalButton = getPortalButton(button);
+                        if (!portalButton || !shoppingListsAreEnabled(getShoppingList())) return;
+                        if (button.getAttribute('aria-busy') === 'true') return;
+
+                        button.setAttribute('aria-busy', 'true');
+                        button.classList.add('is-loading');
+                        var loadingTimeout = window.setTimeout(function () {
+                            button.removeAttribute('aria-busy');
+                            button.classList.remove('is-loading');
+                        }, 5000);
+
+                        prepareProductOptions(button).then(function () {
+                            var restorePdpButton = movePdpButtonToCard(portalButton, button);
+                            portalButton.click();
+                            window.setTimeout(function () {
+                                if (window.location.hash.indexOf('/pdp') === -1) restorePdpButton();
+                            }, 3000);
+                        }).catch(function (error) {
+                            console.warn('[B2B Shopping List] ' + error.message);
+                        }).then(function () {
+                            window.clearTimeout(loadingTimeout);
+                            button.removeAttribute('aria-busy');
+                            button.classList.remove('is-loading');
+                        });
+                    });
+
+                    new MutationObserver(function (mutations) {
+                        var hasNewCards = mutations.some(function (mutation) {
+                            return Array.prototype.some.call(mutation.addedNodes, function (node) {
+                                return node.nodeType === 1
+                                    && (node.matches(selector)
+                                        || node.matches('.b2b-add-to-list')
+                                        || node.querySelector(selector)
+                                        || node.querySelector('.b2b-add-to-list'));
+                            });
+                        });
+
+                        if (hasNewCards) updateCardButtons();
+                    }).observe(document.body, { childList: true, subtree: true });
+
+                    waitForBuyerPortal();
+                }());
+            </script>
+            <script nonce="{{nonce}}">
+                {{!-- Exported in app.js --}}
+                function onThemeBundleMain() {
+                    window.stencilBootstrap("{{page_type}}", {{jsContext}}).load();
+
+                    function browserSupportsFormData() {
+                        return typeof FormData !== 'undefined' 
+                            && !!FormData.prototype.keys;
+                    }
+                    function loadFormDataPolyfillScript(src) {
+                        var formDataPolyfillScript = document.createElement('script');
+                        formDataPolyfillScript.src = src;
+                        formDataPolyfillScript.onerror = function () {
+                            console.error('Failed to load formData polyfill script ' + src);
+                        };
+                        document.body.appendChild(formDataPolyfillScript);
+                    }
+
+                    if (!browserSupportsFormData()) {
+                        loadFormDataPolyfillScript('{{cdn 'assets/dist/theme-bundle.polyfill_form_data.js'}}');
+                    }
+                }
+            </script>
+            <script id="theme-bundle-main" nonce="{{nonce}}" async defer src="{{cdn 'assets/dist/theme-bundle.main.js' resourceHint='preload' as='script'}}"></script>
+            <script nonce="{{nonce}}">
+                const scriptElement = document.getElementById('theme-bundle-main');
+
+                if (scriptElement) {
+                    if (typeof window.stencilBootstrap === 'function') {
+                        onThemeBundleMain();
+                    } else {
+                        scriptElement.addEventListener('load', onThemeBundleMain, { once: true });
+                    }
+                } else {
+                    console.error('Could not find script element with id "theme-bundle-main"');
+                }
+            </script>
+
+            <script nonce="{{nonce}}">
+                (function () {
+                    var sustainabilityTerms = /\b(?:RPET|recycled|recyclable|FSC)\b/i;
+
+                    function addSustainabilityFlags() {
+                        document.querySelectorAll('.card').forEach(function (card) {
+                            var specifications = Array.prototype.find.call(
+                                card.querySelectorAll('.is-sustainability-ribbon'),
+                                function (element) {
+                                    return sustainabilityTerms.test(element.textContent || '');
+                                }
+                            );
+
+                            if (!specifications) return;
+
+                            var hasFlag = card.querySelector('.sustainability-flag');
+
+                            if (!hasFlag) {
+                                specifications.insertAdjacentHTML(
+                                    'afterend',
+                                    '<div class="sale-flag-side sustainability-flag"><span class="sale-text">Sustainable Materials</span></div>'
+                                );
+                            }
+                        });
+
+                        document.querySelectorAll('.productView-images').forEach(function (gallery) {
+                            var specifications = Array.prototype.find.call(
+                                gallery.querySelectorAll('.is-sustainability-ribbon'),
+                                function (element) {
+                                    return sustainabilityTerms.test(element.textContent || '');
+                                }
+                            );
+                            var productImage = gallery.querySelector('.productView-image');
+
+                            if (!specifications || !productImage || productImage.querySelector('.sustainability-flag')) return;
+
+                            productImage.insertAdjacentHTML(
+                                'afterbegin',
+                                '<div class="sale-flag-side sustainability-flag"><span class="sale-text">Sustainable Materials</span></div>'
+                            );
+                        });
+                    }
+
+                    addSustainabilityFlags();
+
+                    new MutationObserver(addSustainabilityFlags).observe(document.body, {
+                        childList: true,
+                        characterData: true,
+                        attributes: true,
+                        attributeFilter: ['class'],
+                        subtree: true,
+                    });
+                }());
+            </script>
+
+            
+
+        {{else}}
+
+            {{#if page_type '!=' 'login'}}
+
+
+
+                <section class="twelve-guest-screen" aria-labelledby="guest-screen-title">
+                    <div class="twelve-guest-art" aria-hidden="true">
+                        <div class="twelve-guest-art-inner">
+                            <span class="twelve-guest-kicker">Product-obsessed since 2005</span>
+                            <h2>Made Possible By Twelve.</h2>
+                            <p>Custom packaging, merchandise and gifting for the world's most iconic brands.</p>
+                            <span class="twelve-guest-locations">Brooklyn · London · Paris</span>
+                        </div>
+                    </div>
+
+                    <div class="twelve-guest-content">
+                        <div class="twelve-guest-card">
+                            <div class="twelve-guest-logo">
+                                {{> components/common/store-logo}}
+                            </div>
+                            <h1 hidden>Twelve — packaging, premiums and gifting</h1>
+                            <h3 id="guest-screen-title">Access the collection</h3>
+                            <p>Sign in to browse products and manage your account. New to Twelve? Register to get started.</p>
+
+                            <div class="twelve-guest-actions">
+                                <button class="btn-with-outline event-open-signin" type="button">
+                                    <span>{{lang 'category.login_required.button'}}</span>
+                                </button>
+                                <button class="btn-with-outline event-open-signup" type="button">
+                                    <span>{{lang 'common.sign_up'}}</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            {{else}}
+
+                {{> components/common/body }}
+
+            {{/if}}
+
+
+        {{/if}}
+        
+        {{> components/common/user-authentication }}
+        
+        {{{footer.scripts}}}
+        
+        <script>
+            (function () {
+              function checkLogoutUrl() {
+                  if (location.href.includes("#/login") && !location.href.includes("loginFlag=receivePassword")) {
+                      setTimeout(() => {
+                        window.location.replace("/");
+                      }, 1000);
+                  }
+              }
+              // Detect browser back/forward
+              window.addEventListener("popstate", checkLogoutUrl);
+        
+              // Detect pushState
+              const pushState = history.pushState;
+              history.pushState = function () {
+                  pushState.apply(history, arguments);
+                  checkLogoutUrl();
+              };
+        
+              // Detect replaceState
+              const replaceState = history.replaceState;
+              history.replaceState = function () {
+                  replaceState.apply(history, arguments);
+                  checkLogoutUrl();
+              };
+        
+              // Initial check
+              checkLogoutUrl();
+          })();
+        </script>
+
+        <script nonce="{{nonce}}">
+            (function () {
+                function cleanText(element) {
+                    return element ? (element.textContent || '').replace(/\s+/g, ' ').trim() : '';
+                }
+
+                function sendClickEvent(eventName, details) {
+                    var eventPayload = Object.assign({
+                        id: '{{customer.id}}',
+                        email: '{{customer.email}}',
+                        page_type: '{{page_type}}',
+                        page_url: window.location.href,
+                        events: { name: eventName }
+                    }, details);
+
+                    console.info('[Analytics] Event ready:', eventName, eventPayload);
+
+                    if (typeof window.gtag !== 'function') {
+                        console.warn('[Analytics] gtag is not available:', eventName);
+                        return;
+                    }
+
+                    window.gtag('event', eventName, eventPayload);
+                    console.info('[Analytics] Event queued in dataLayer:', eventName);
+                }
+
+                document.addEventListener('submit', function (event) {
+                    var form = event.target;
+                    if (!form || !form.matches('[data-quick-search-form], [data-advanced-search-form], form[action*="/search"]')) return;
+
+                    var queryInput = form.querySelector('[data-search-quick], [name="search_query"], [name="search_query_adv"]');
+                    var brandSelect = form.querySelector('[name="brand"]');
+                    var categorySelect = form.querySelector('[name="category"]');
+                    var categoryInputs = form.querySelectorAll('[name="category[]"]');
+                    var selectedBrand = brandSelect && brandSelect.options ? brandSelect.options[brandSelect.selectedIndex] : null;
+                    var selectedCategory = categorySelect && categorySelect.options ? categorySelect.options[categorySelect.selectedIndex] : null;
+
+                    sendClickEvent('Search criteria', {
+                        search_term: queryInput ? queryInput.value.trim() : '',
+                        search_type: form.hasAttribute('data-advanced-search-form') ? 'advanced' : 'quick',
+                        brand_id: brandSelect ? brandSelect.value : '',
+                        brand_name: selectedBrand ? cleanText(selectedBrand) : '',
+                        category_id: categoryInputs.length
+                            ? Array.prototype.map.call(categoryInputs, function (input) { return input.value; }).join(',')
+                            : categorySelect ? categorySelect.value : '',
+                        category_name: selectedCategory ? cleanText(selectedCategory) : '',
+                        include_subcategories: !!form.querySelector('[name="searchsubs"]:checked'),
+                        price_from: (form.querySelector('[name="price_from"]') || {}).value || '',
+                        price_to: (form.querySelector('[name="price_to"]') || {}).value || '',
+                        featured: (form.querySelector('[name="featured"]') || {}).value || '',
+                        shipping: (form.querySelector('[name="shipping"]') || {}).value || '',
+                        click_location: form.hasAttribute('data-advanced-search-form') ? 'Advanced search' : 'Header search'
+                    });
+                });
+
+                document.addEventListener('click', function (event) {
+                    var link = event.target.closest('a, button');
+                    if (!link) return;
+
+                    var facetContent = link.closest('.accordion-content[data-facet-title]');
+                    if (facetContent
+                        && link.matches('[data-faceted-search-facet]')
+                        && /material/i.test(facetContent.getAttribute('data-facet-title') || '')) {
+                        var filterValue = link.cloneNode(true);
+                        Array.prototype.forEach.call(
+                            filterValue.querySelectorAll('.twelve-facet-option-count, .navList-action-close'),
+                            function (element) { element.remove(); }
+                        );
+
+                        sendClickEvent('Filter selections', {
+                            filter_type: 'Material',
+                            filter_value: cleanText(filterValue),
+                            selection_action: link.classList.contains('is-selected') ? 'remove' : 'add',
+                            category_name: cleanText(document.querySelector('.top-category-hero__title')),
+                            click_location: 'Product filters'
+                        });
+                        return;
+                    }
+
+                    var navigationItem = link.closest('.twelve-nav-item');
+                    var megaMenu = link.closest('.twelve-mega');
+
+                    var orderRequestLink = link.closest('.twelve-cart__summary .twelve-button--block[href*="submit-order-request"]');
+                    if (orderRequestLink) {
+                        var cartSummaryValues = document.querySelectorAll('.twelve-cart__summary-list dd');
+                        var cartRows = document.querySelectorAll('.twelve-cart-line[data-cart-item-id]');
+
+                        sendClickEvent('Cart abandonment', {
+                            cart_items: cartSummaryValues[0] ? cleanText(cartSummaryValues[0]) : '',
+                            cart_units: cartSummaryValues[1] ? cleanText(cartSummaryValues[1]) : '',
+                            cart_subtotal: cartSummaryValues[2] ? cleanText(cartSummaryValues[2]) : '',
+                            cart_item_ids: Array.prototype.map.call(cartRows, function (row) {
+                                return row.getAttribute('data-cart-item-id') || '';
+                            }).join(','),
+                            cart_item_names: Array.prototype.map.call(cartRows, function (row) {
+                                return cleanText(row.querySelector('h2'));
+                            }).join(', '),
+                            link_text: cleanText(orderRequestLink),
+                            link_url: orderRequestLink.href || '',
+                            click_location: 'Cart summary'
+                        });
+                        return;
+                    }
+
+                    if (navigationItem
+                        && link.closest('.twelve-navigation')
+                        && /^contact(?: us)?$/i.test(cleanText(link))) {
+                        sendClickEvent('Contact Us clicks', {
+                            link_text: cleanText(link),
+                            link_url: link.href || '',
+                            click_location: 'Menu'
+                        });
+                        return;
+                    }
+
+                    var contactEmailLink = link.closest('.twelve-contact__offices a[href^="mailto:"]');
+                    if (contactEmailLink) {
+                        var contactOffice = contactEmailLink.closest('.twelve-contact__office');
+
+                        sendClickEvent('Email address clicks', {
+                            email_address: (contactEmailLink.getAttribute('href') || '').replace(/^mailto:/i, ''),
+                            office: cleanText(contactOffice && contactOffice.querySelector('.twelve-contact__eyebrow')),
+                            link_text: cleanText(contactEmailLink),
+                            link_url: contactEmailLink.href || '',
+                            click_location: 'Contact page'
+                        });
+                        return;
+                    }
+
+                    var footerLink = link.closest('.twelve-footer a');
+                    if (footerLink) {
+                        if (/\/our-story\/?(?:[?#].*)?$/.test(footerLink.href || '')) {
+                            sendClickEvent('Our Story Click', {
+                                link_text: cleanText(footerLink),
+                                link_url: footerLink.href || '',
+                                click_location: 'Footer'
+                            });
+                            return;
+                        }
+
+                        var footerCategoryRegion = footerLink.closest(
+                            '[data-content-region="footer_links_1--global"]'
+                        );
+
+                        if (footerCategoryRegion) {
+                            sendClickEvent('Category clicks', {
+                                category_name: cleanText(footerLink),
+                                link_text: cleanText(footerLink),
+                                link_url: footerLink.href || '',
+                                click_location: 'Footer - Shop'
+                            });
+                            return;
+                        }
+
+                        var footerLinkDescription = [
+                            cleanText(footerLink),
+                            footerLink.getAttribute('aria-label') || '',
+                            footerLink.getAttribute('title') || '',
+                            footerLink.href || ''
+                        ].join(' ');
+                        var footerEventName = '';
+
+                        if (/techn(?:ical|cial)\s+support|elcsupport/i.test(footerLinkDescription)) {
+                            footerEventName = 'Technical support clicks';
+                        } else if (/procurement.*shipping|shipping.*procurement/i.test(footerLinkDescription)) {
+                            footerEventName = 'Procurement and Shipping clicks';
+                        } else if (/instagram(?:\.com)?/i.test(footerLinkDescription)) {
+                            footerEventName = 'Instagram clicks';
+                        } else if (/linkedin(?:\.com)?/i.test(footerLinkDescription)) {
+                            footerEventName = 'LinkedIn clicks';
+                        }
+
+                        if (footerEventName) {
+                            sendClickEvent(footerEventName, {
+                                link_text: cleanText(footerLink),
+                                link_url: footerLink.href || '',
+                                click_location: 'Footer'
+                            });
+                            return;
+                        }
+                    }
+
+                    if (navigationItem && megaMenu && navigationItem.getAttribute('nav-item') === 'shop') {
+                        sendClickEvent('Category click', {
+                            category_name: cleanText(link),
+                            link_url: link.href || '',
+                            click_location: 'Shop mega menu'
+                        });
+                        return;
+                    }
+
+                    if (navigationItem && megaMenu && navigationItem.getAttribute('nav-item') === 'brands') {
+                        sendClickEvent('Brand click', {
+                            brand_id: link.getAttribute('data-account-brand-id') || '',
+                            brand_name: cleanText(link),
+                            link_url: link.href || '',
+                            click_location: 'Brands mega menu'
+                        });
+                        return;
+                    }
+
+                    var launchProjectCta = /launch\s+a\s+project/i.test(cleanText(link))
+                        && link.matches('a, button')
+                        ? link
+                        : null;
+                    if (launchProjectCta) {
+                        console.info('[Analytics] Launch a Project CTA captured:', launchProjectCta);
+                        sendClickEvent('Launch a Project click', {
+                            category_name: cleanText(document.querySelector('.top-category-hero__title'))
+                                || cleanText(document.querySelector('.breadcrumbs .breadcrumb:last-child')),
+                            cta_text: cleanText(launchProjectCta),
+                            link_url: launchProjectCta.href || '',
+                            click_location: 'Category hero'
+                        });
+                        return;
+                    }
+
+                    var productTrigger = link.closest('[data-event-type="product-click"]');
+                    if (productTrigger) {
+                        var card = productTrigger.closest('.card');
+
+                        sendClickEvent('Product click', {
+                            product_id: card ? card.getAttribute('data-entity-id') || '' : productTrigger.getAttribute('data-product-id') || '',
+                            product_name: card ? card.getAttribute('data-name') || '' : cleanText(document.querySelector('.productView-title')),
+                            product_brand: card ? card.getAttribute('data-product-brand') || '' : cleanText(document.querySelector('.productView-brand')),
+                            product_category: card ? (card.getAttribute('data-product-category') || '').replace(/\s+/g, ' ').trim() : '',
+                            product_price: card ? (card.getAttribute('data-product-price') || '').replace(/\s+/g, ' ').trim() : '',
+                            product_position: card ? card.getAttribute('data-position') || '' : '',
+                            click_text: cleanText(productTrigger),
+                            click_location: '{{page_type}}',
+                            link_url: productTrigger.href || ''
+                        });
+                        return;
+                    }
+
+                    var trendCard = link.closest('.inspired-card');
+                    if (trendCard) {
+                        var action = link.classList.contains('inspired-card__button--download')
+                            ? 'download'
+                            : link.classList.contains('inspired-card__button--view')
+                                ? 'view'
+                                : 'click';
+
+                        sendClickEvent('Trend report click', {
+                            report_name: cleanText(trendCard.querySelector('h3')),
+                            report_meta: cleanText(trendCard.querySelector('.inspired-card__meta')),
+                            action: action,
+                            click_text: cleanText(link),
+                            link_url: link.href || '',
+                            click_location: "Home - Trends we're loving"
+                        });
+                    }
+                }, true);
+            }());
+        </script>
+
+        
+    </body>
+</html>
+

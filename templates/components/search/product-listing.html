@@ -1,0 +1,27 @@
+{{inject 'noCompareMessage' (lang 'compare.no_compare')}}
+
+{{#if product_results.products.length}}
+    <header class="twelve-category-toolbar" data-twelve-total-source="{{pagination.product_results.total}}">
+        <p class="twelve-category-toolbar__count">
+            Showing <span data-twelve-showing-count>{{product_results.products.length}}</span> of <span data-twelve-total-count>{{pagination.product_results.total}}</span>
+        </p>
+    </header>
+
+    <div data-list-name="Search Results" role="region" aria-label="Search products">
+        {{#if theme_settings.product_list_display_mode '===' 'grid'}}
+            {{> components/products/grid products=product_results.products show_compare=product_results.show_compare event="list" theme_settings=theme_settings customer=customer wishlists=customer.wishlists hide_wishlist=true}}
+        {{else}}
+            {{> components/products/list products=product_results.products show_compare=product_results.show_compare event="list" theme_settings=theme_settings customer=customer}}
+        {{/if}}
+    </div>
+
+    <div class="twelve-category-load-more" data-twelve-load-more>
+        <p class="twelve-category-load-more__count"><span data-twelve-loaded-count>{{product_results.products.length}}</span> of <span data-twelve-load-total>{{pagination.product_results.total}}</span> products</p>
+        <span class="twelve-category-load-more__track"><i data-twelve-load-progress></i></span>
+        {{#if pagination.product_results.next}}
+            <a class="button twelve-category-load-more__button" href="{{pagination.product_results.next}}" data-twelve-load-more-button><span>Load more</span></a>
+        {{/if}}
+    </div>
+{{else}}
+    <p class="page-content page-content--centered">No products found.</p>
+{{/if}}

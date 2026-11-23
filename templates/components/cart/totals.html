@@ -1,0 +1,20 @@
+<h2 class="twelve-eyebrow">Summary</h2>
+<dl class="twelve-cart__summary-list">
+    <dt>Items</dt><dd>{{cart.items.length}}</dd>
+    <dt>Units</dt><dd>{{cart.quantity}}</dd>
+    <dt>Subtotal</dt><dd>{{#or customer (unless settings.hide_price_from_guests)}}{{cart.sub_total.formatted}}{{else}}&mdash;{{/or}}</dd>
+</dl>
+
+{{!-- 
+<p class="twelve-cart__fineprint"><strong>Prices shown are Ex Works and  do not include shipping. Freight, duties and any distribution fees are quoted separately.</strong></p>
+<div class="twelve-cart__notice"><span class="twelve-eyebrow">Request, not an order</span><p>Submitting this does not place an order. A Twelve representative reviews every request and contacts you with next steps.</p></div>
+--}}
+
+<a class="twelve-button twelve-button--block" href="/submit-order-request/">Submit order request</a>
+
+{{!-- 
+<p class="twelve-cart__guidance">You can request freight estimates and provide design direction in the next step</p>
+<a class="twelve-cart__text-link" href="/shop/">Continue shopping <span aria-hidden="true">&rarr;</span></a>
+--}}
+
+

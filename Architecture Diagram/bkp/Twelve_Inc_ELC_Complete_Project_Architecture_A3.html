@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Twelve Inc. - ELC B2B Architecture</title>
+<style>
+  :root{--navy:#102a43;--navy2:#163c5d;--blue:#2867a6;--blue-bg:#e8f1ff;--purple:#7048a8;--purple-bg:#f3e8ff;--green:#25815b;--green-bg:#e7f8f0;--orange:#b66a00;--orange-bg:#fff2d8;--red:#b63a3a;--red-bg:#ffe7e7;--gray:#59636e;--gray-bg:#f3f4f6;--ink:#172b3d;--white:#fff}
+  *{box-sizing:border-box} html,body{margin:0;background:#20252b;color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{position:sticky;top:0;z-index:99;display:flex;align-items:center;justify-content:center;gap:14px;padding:10px;background:#111923;color:#fff;box-shadow:0 4px 20px #0005}
+  .toolbar button{border:0;border-radius:8px;background:#2f76b9;color:#fff;font-weight:700;padding:10px 18px;cursor:pointer}.toolbar span{font-size:13px;color:#cbd5df}
+  .page{position:relative;width:420mm;height:297mm;margin:14px auto;background:#fff;overflow:hidden;page-break-after:always;box-shadow:0 8px 35px #0007}
+  .page:last-child{page-break-after:auto}.content{padding:23mm 10mm 15mm}.topbar{position:absolute;inset:0 0 auto;height:19mm;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 10mm}.topbar h1{font-size:21.5pt;margin:0}.topbar p{font-size:10pt;margin:0;color:#dce7f1}.footer{position:absolute;left:10mm;right:10mm;bottom:5mm;display:flex;justify-content:space-between;font-size:8.5pt;color:var(--gray)}
+  .grid{display:grid;gap:5mm}.cols-5{grid-template-columns:repeat(5,1fr)}.cols-4{grid-template-columns:repeat(4,1fr)}.cols-3{grid-template-columns:repeat(3,1fr)}.cols-2{grid-template-columns:repeat(2,1fr)}
+  .card{position:relative;height:auto;border:1.4px solid var(--gray);border-radius:4mm;padding:5mm;background:#fff;min-height:31mm}.card h2,.card h3{margin:0 0 3mm;color:var(--navy);line-height:1.1}.card h2{font-size:13.5pt}.card h3{font-size:12pt}.card p,.card li{font-size:9.9pt;line-height:1.4;margin:1.2mm 0}.card ul{margin:0;padding-left:5mm}.blue{background:var(--blue-bg);border-color:var(--blue)}.purple{background:var(--purple-bg);border-color:var(--purple)}.green{background:var(--green-bg);border-color:var(--green)}.orange{background:var(--orange-bg);border-color:var(--orange)}.red{background:var(--red-bg);border-color:var(--red)}.gray{background:var(--gray-bg);border-color:var(--gray)}
+  .tag{position:absolute;right:3mm;top:3mm;border-radius:3mm;padding:1.1mm 2.3mm;color:#fff;font-size:8pt;font-weight:800;background:var(--gray)}.blue .tag{background:var(--blue)}.purple .tag{background:var(--purple)}.green .tag{background:var(--green)}.orange .tag{background:var(--orange)}.red .tag{background:var(--red)}
+  .flow{display:flex;align-items:stretch;gap:6mm}.flow>.card{flex:1}.flow>.card:not(:last-child):after{content:"";position:absolute;top:50%;right:-6mm;width:6mm;border-top:1.6px solid var(--gray)}.flow>.card:not(:last-child):before{content:"";position:absolute;z-index:2;right:-6mm;top:calc(50% - 2mm);border-left:2.5mm solid var(--gray);border-top:2mm solid transparent;border-bottom:2mm solid transparent}
+  .flow.compact .card{height:auto;min-height:24mm;padding:4mm}.flow.compact .card p{font-size:9.3pt}.lane-label{display:flex;align-items:center;gap:3mm;margin:3.5mm 0 2.5mm;font-size:10pt;font-weight:850;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}.lane-label:after{content:"";height:1px;background:#d8dee5;flex:1}.shared-note{text-align:center;margin:2.5mm 0 0;font-size:9pt;color:var(--gray);font-weight:700}
+  .section-title{margin:6mm 0 3mm;font-size:11.5pt;letter-spacing:.12em;text-transform:uppercase;color:var(--gray)}.legend{display:flex;gap:9mm;align-items:center;margin-top:4mm;font-size:8.5pt;color:var(--gray)}.legend i{display:inline-block;width:3mm;height:3mm;margin-right:2mm;vertical-align:middle}.note{font-size:9.5pt;color:var(--gray)}
+  .cover{background:linear-gradient(135deg,#0d2840 0%,#143856 70%,#1c4d6d 100%);color:#fff}.cover:before{content:"";position:absolute;width:145mm;height:145mm;border-radius:50%;right:-37mm;top:-48mm;background:#e8f1ff}.cover:after{content:"";position:absolute;width:100mm;height:100mm;border-radius:50%;right:-22mm;bottom:-55mm;background:#f3e8ff}.cover-grid{position:absolute;inset:0;background-image:linear-gradient(#fff08 1px,transparent 1px),linear-gradient(90deg,#fff08 1px,transparent 1px);background-size:12mm 12mm;mask-image:linear-gradient(120deg,#000 0%,transparent 70%)}
+  .cover-main{position:relative;z-index:2;padding:38mm 24mm 18mm;max-width:300mm}.cover-kicker{display:inline-flex;gap:3mm;align-items:center;font-size:8pt;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#b9daf5}.cover-kicker:before{content:"";width:18mm;border-top:2px solid #49a2e5}.cover h1{margin:9mm 0 2mm;font-size:39pt;line-height:.98;letter-spacing:-.035em}.cover h1 span{display:block;color:#91c9f2}.cover .subtitle{max-width:190mm;font-size:15pt;line-height:1.45;color:#dcebf6;margin:7mm 0 10mm}.cover-badge{display:inline-flex;align-items:center;gap:3mm;border:1px solid #79bced66;background:#2c78b8cc;border-radius:99px;padding:3.2mm 6mm;font-size:9pt;font-weight:750;letter-spacing:.05em}.cover-badge:before{content:"";width:7px;height:7px;border-radius:50%;background:#9ee4c5;box-shadow:0 0 0 4px #9ee4c522}
+  .cover-meta{position:absolute;z-index:3;left:24mm;right:24mm;bottom:18mm;display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:5mm}.cover-meta .mini{border-top:1px solid #ffffff38;padding-top:4mm}.cover-meta b{display:block;font-size:7pt;letter-spacing:.15em;text-transform:uppercase;color:#8bc4ef;margin-bottom:2mm}.cover-meta span{font-size:9pt;color:#e7f2fa}.cover-mark{position:absolute;z-index:2;right:22mm;top:112mm;width:50mm;height:50mm;border:1px solid #ffffff30;border-radius:50%;display:grid;place-items:center;font-size:9pt;font-weight:800;letter-spacing:.12em;color:#b9daf5}.cover-mark:before,.cover-mark:after{content:"";position:absolute;border-radius:50%;border:1px solid #ffffff18}.cover-mark:before{inset:7mm}.cover-mark:after{inset:14mm}
+  .decision{clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);min-height:34mm;border-radius:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:9mm}.exact{border-width:2px}.exact code{font-family:inherit;font-weight:800;color:#7a4300}.status-table{width:100%;border-collapse:collapse;font-size:9pt}.status-table th,.status-table td{border:1px solid #d4dbe2;padding:3mm;text-align:left}.status-table th{background:var(--navy);color:#fff}.timeline{display:grid;grid-template-columns:repeat(7,1fr);gap:3mm;counter-reset:step}.timeline .step{position:relative;padding:5mm 3mm 4mm;border-top:3px solid var(--blue);background:var(--gray-bg);min-height:27mm}.timeline .step:before{counter-increment:step;content:counter(step);position:absolute;top:-5mm;left:3mm;width:7mm;height:7mm;border-radius:50%;display:grid;place-items:center;background:var(--blue);color:#fff;font-size:7pt;font-weight:800}
+  .card p,.card li,.flow.compact .card p,.shared-note,.status-table,.note,.footer,.topbar p,.cover-meta span,.cover-kicker,.cover-badge,.lane-label{font-size:14px}
+  .url-card{min-height:25mm;padding:4mm 5mm}.url-card a{display:block;margin-top:2mm;color:#175f9c;font-size:14px;font-weight:650;line-height:1.35;text-decoration:underline;text-underline-offset:2px;overflow-wrap:anywhere}.url-card a:after{content:" ↗";text-decoration:none}
+  @page{size:A3 landscape;margin:0}@media print{html,body{background:#fff}.toolbar{display:none}.page{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="toolbar"><button onclick="window.print()">Print / Save as PDF</button><span>Choose A3, Landscape, Margins: None, Background graphics: On</span></div>
+
+<section class="page cover">
+  <div class="cover-grid"></div>
+  <main class="cover-main">
+    <div class="cover-kicker">Enterprise Architecture Blueprint</div>
+    <h1>TWELVE INC.</h1>
+    <p class="subtitle">A complete technical blueprint connecting customer access, company permissions, order requests, BigCommerce services and reliable order processing.</p>
+    <div class="cover-badge">COMPLETE SYSTEM ARCHITECTURE &amp; DELIVERY BLUEPRINT</div>
+  </main>
+  <div class="cover-meta">
+    <div class="mini"><b>Prepared for</b><span>Twelve Inc. / ELC B2B Program</span></div>
+    <div class="mini"><b>Architecture scope</b><span>Customer, Admin, BigCommerce, Orders &amp; Data</span></div>
+    <div class="mini"><b>Document date</b><span>20 November 2026 · Version 1.0</span></div>
+  </div>
+</section>
+
+<section class="page"><header class="topbar"><h1>01. Complete System Architecture</h1><p>Shared company configuration drives admin and customer behavior</p></header><main class="content">
+  <div class="lane-label">Customer Journey</div>
+  <div class="flow compact">
+    <article class="card blue"><span class="tag">1</span><h3>Customer Storefront</h3><p>Register or sign in, then browse the storefront.</p></article>
+    <article class="card green"><span class="tag">2</span><h3>Authentication &amp; Company</h3><p>Validate session, email domain and company association.</p></article>
+    <article class="card red"><span class="tag">3</span><h3>Authorized Catalog &amp; Cart</h3><p>Apply company, brand and product permissions.</p></article>
+    <article class="card green"><span class="tag">4</span><h3>Order Request</h3><p>Validate cart, assign reference/status and create the order.</p></article>
+  </div>
+  <div class="lane-label">Admin Configuration - Separate Authorized Path</div>
+  <div class="flow compact">
+    <article class="card purple"><span class="tag">A1</span><h3>Twelve Inc. Admin</h3><p>Admin signs in with an authorized role.</p></article>
+    <article class="card purple"><span class="tag">A2</span><h3>Select Existing Company</h3><p>Search and load the company’s current configuration.</p></article>
+    <article class="card purple"><span class="tag">A3</span><h3>Account Configurator</h3><p>Select permitted brands/products and save.</p></article>
+    <article class="card orange"><span class="tag">A4</span><h3>Company Configuration</h3><p>Update Account Configurator; customer policy reads it.</p></article>
+  </div>
+  <p class="shared-note">Customer and Admin paths are separate. They interact only through secured shared services and the company configuration.</p>
+  <h2 class="section-title">Shared integration and data plane</h2>
+  <div class="grid cols-3">
+    <article class="card green"><span class="tag">BACKEND</span><h2>Server-side Application Services</h2><ul><li>Registration and company matching</li><li>Company, Brand &amp; Product Access Validation</li><li>Account Configurator API</li><li>Order Request API</li><li>Reference, idempotency and reconciliation</li></ul></article>
+    <article class="card orange"><span class="tag">BIGCOMMERCE</span><h2>BigCommerce Platform</h2><ul><li>Stencil storefront and customer session</li><li>B2B company context</li><li>Catalog, carts and customers</li><li>Order API and configured statuses</li></ul></article>
+    <article class="card gray"><h2>Data &amp; Email</h2><ul><li>BigCommerce systems of record</li><li>Durable request ledger and email outbox</li><li>Customer confirmation</li><li>Internal team notification</li></ul></article>
+  </div>
+  <h2 class="section-title">BigCommerce B2B Company - Custom Extra Fields</h2>
+  <article class="card orange exact"><span class="tag">EXACT FIELD NAMES</span><div class="grid cols-2">
+    <div><h2><code>Company Domain</code></h2><p><b>Purpose:</b> Match an email to an existing eligible company during registration.</p><p><b>Example:</b> twelvenyc.com</p><p>Company → Company Domain → Email-domain validation → Company match</p></div>
+    <div><h2><code>Account Configurator</code></h2><p><b>Purpose:</b> Store company-specific brand and product access configuration.</p><p><b>Value:</b> Versioned JSON</p><p>Admin → Configurator → Company → Account Configurator → Access validation → Storefront</p></div>
+  </div></article>
+</main><footer class="footer"><span>Twelve Inc. · ELC B2B Architecture Blueprint</span><span>Page 2 of 6</span></footer></section>
+
+<section class="page"><header class="topbar"><h1>02. Registration, Domain Validation &amp; Authentication</h1><p>No public registration may create a new B2B company</p></header><main class="content">
+  <div class="flow">
+    <article class="card blue"><span class="tag">01</span><h3>Email</h3><p>Customer enters email. Server normalizes and extracts its domain.</p></article>
+    <article class="card orange"><span class="tag">02</span><h3>Company Lookup</h3><p>Retrieve existing active companies and exact <b>Company Domain</b>.</p></article>
+    <article class="card red"><span class="tag">03</span><h3>Decision</h3><p>Require exactly one match. Fail closed on ambiguity or API error.</p></article>
+    <article class="card green"><span class="tag">04</span><h3>Association</h3><p>Create customer account and securely link the existing company.</p></article>
+    <article class="card purple"><span class="tag">05</span><h3>Authentication</h3><p>Verify email, sign in and establish trusted company context.</p></article>
+  </div>
+  <h2 class="section-title">Outcome paths</h2>
+  <div class="grid cols-2">
+    <article class="card green"><span class="tag">ALLOW</span><h2>Successful Match</h2><ul><li>Email ownership and customer authentication verified</li><li>Existing company association becomes authoritative</li><li>Load exact <b>Account Configurator</b> field</li><li>Evaluate permissions before protected content</li></ul></article>
+    <article class="card red"><span class="tag">DENY</span><h2>Failure Path - Exact Message</h2><p><b>Never create a B2B company.</b></p><p>“We cannot find company details in our records. Kindly contact on elcsupport@twelvenyc.com email address for submitting your sign up request.”</p></article>
+  </div>
+</main><footer class="footer"><span>Twelve Inc. · ELC B2B Architecture Blueprint</span><span>Page 3 of 6</span></footer></section>
+
+<section class="page"><header class="topbar"><h1>03. Account Configurator &amp; Permission Architecture</h1><p>One company policy, enforced everywhere</p></header><main class="content">
+  <div class="flow">
+    <article class="card purple"><span class="tag">ADMIN</span><h2>Twelve Inc. Admin</h2><p>Authenticate → search/select existing company → load policy → select brands/products → save.</p></article>
+    <article class="card orange"><span class="tag">EXACT</span><h2>BigCommerce B2B Company</h2><p><b>Company Domain</b> supports registration. <b>Account Configurator</b> stores permission JSON.</p></article>
+    <article class="card red"><span class="tag">BACKEND</span><h2>Company Access Validation</h2><p>Confirm the company, validate its saved permissions, block unauthorized access and recheck when needed.</p></article>
+  </div>
+  <h2 class="section-title">Mandatory enforcement surfaces</h2>
+  <div class="grid cols-3">
+    <article class="card blue"><h3>Homepage &amp; Navigation</h3><p>Only approved merchandising and destination links.</p></article><article class="card blue"><h3>Brand, Category &amp; PLP</h3><p>Filter listings without exposing restricted metadata.</p></article><article class="card blue"><h3>Search Results</h3><p>Authorize server results, counts, suggestions and facets.</p></article>
+    <article class="card blue"><h3>PDP &amp; Direct URLs</h3><p>Deny restricted products even when URL is known.</p></article><article class="card blue"><h3>Cart</h3><p>Revalidate every mutation and all current line items.</p></article><article class="card blue"><h3>Order Request</h3><p>Final server-side permission check before order creation.</p></article>
+  </div>
+  <h2 class="section-title">Saving Company Configuration</h2>
+  <article class="card gray"><p>Validate company and catalog IDs → apply versioned JSON schema → detect conflicts → optimistic concurrency → update exact <b>Account Configurator</b> field → record actor, time and before/after hash → invalidate cached policy. Customers have no permission-write path.</p></article>
+</main><footer class="footer"><span>Twelve Inc. · ELC B2B Architecture Blueprint</span><span>Page 4 of 6</span></footer></section>
+
+<section class="page"><header class="topbar"><h1>04. Order Request, Status, Reference &amp; Notifications</h1><p>One order, one stable reference, two independently retryable emails</p></header><main class="content">
+  <div class="flow">
+    <article class="card blue"><h3>Custom Form</h3><p>Cart, brand, regions, date, address, freight, allocations, notes and attachments.</p></article>
+    <article class="card green"><h3>Server Validation</h3><p>Trusted identity, company, cart, catalog, permissions, inputs and files.</p></article>
+    <article class="card purple"><h3>Duplicate Prevention</h3><p>Use a unique submission key and stable reference such as <b>TWV-140</b> to prevent duplicate orders.</p></article>
+    <article class="card orange"><h3>Freight Decision</h3><p>Choose the configured BigCommerce order status from the freight checkbox.</p></article>
+  </div>
+  <h2 class="section-title">Required status logic</h2>
+  <table class="status-table"><thead><tr><th>Freight checkbox</th><th>BigCommerce order status</th><th>Processing rule</th></tr></thead><tbody><tr><td>Checked</td><td><b>Freight Request</b></td><td>Create one order using the tenant-configured status ID.</td></tr><tr><td>Unchecked</td><td><b>Order Request</b></td><td>Create one order using the tenant-configured status ID.</td></tr></tbody></table>
+  <h2 class="section-title">Order and notification plane</h2>
+  <div class="grid cols-3"><article class="card orange"><h2>BigCommerce Order</h2><p>Validated products/quantities, customer-company association, correct status and returned order ID.</p></article><article class="card gray"><h2>Request Ledger</h2><p>Idempotency key, reference, order ID, state, attempts, errors and transaction/outbox boundary.</p></article><article class="card green"><h2>Email Outbox</h2><p>Customer confirmation plus internal email to <b>ELC_NACR_GLOBAL@twelvenyc.com</b>, both using the same reference.</p></article></div>
+  <article class="card red" style="margin-top:5mm"><span class="tag">CRITICAL</span><h2>Failure-safe State Flow</h2><p>RECEIVED → VALIDATED → REFERENCE_RESERVED → ORDER_CREATING → ORDER_CREATED → EMAIL_QUEUED → COMPLETE</p><p>On timeout: reconcile before safe retry. On email failure: retry the email record only and never recreate the order.</p></article>
+</main><footer class="footer"><span>Twelve Inc. · ELC B2B Architecture Blueprint</span><span>Page 5 of 6</span></footer></section>
+
+<section class="page"><header class="topbar"><h1>05. Logical Data Architecture &amp; Ownership</h1><p>Company, customer, order and notification relationships</p></header><main class="content">
+  <div class="grid cols-3">
+    <article class="card orange"><span class="tag">SYSTEM OF RECORD</span><h2>B2B Company</h2><p>company_id, name, status, <b>Company Domain</b>, <b>Account Configurator</b>; one company has many customers.</p></article>
+    <article class="card blue"><span class="tag">BIGCOMMERCE</span><h2>Customer &amp; Cart</h2><p>Customer-company association, authenticated email/session, cart and catalog product/brand IDs.</p></article>
+    <article class="card red"><span class="tag">DERIVED</span><h2>Policy Projection</h2><p>Parsed configuration, brand permissions, product permissions and short-lived cache keyed by configuration hash.</p></article>
+    <article class="card purple"><span class="tag">APP STORE</span><h2>Order Request</h2><p>Request ID, idempotency key, customer/company/cart snapshot, freight flag, state and timestamps.</p></article>
+    <article class="card orange"><span class="tag">BIGCOMMERCE</span><h2>Order</h2><p>Order ID, customer/company, line items, quantities, configured status ID/name and reference linkage.</p></article>
+    <article class="card green"><span class="tag">OUTBOX</span><h2>Notifications</h2><p>Reference, recipient, template version, provider ID, attempts and queued/sent/failed timestamps.</p></article>
+  </div>
+  <h2 class="section-title">Relationship summary</h2>
+  <div class="flow"><article class="card orange"><h3>Company</h3><p>1</p></article><article class="card blue"><h3>Customers</h3><p>Many</p></article><article class="card blue"><h3>Cart &amp; Items</h3><p>One active cart</p></article><article class="card purple"><h3>Requests</h3><p>Many, idempotent</p></article><article class="card orange"><h3>Order</h3><p>Zero or one</p></article></div>
+  <h2 class="section-title">Website Links</h2>
+  <div class="grid cols-3">
+    <article class="card blue url-card"><h3>Sign In</h3><a href="https://elc.twelvenyc.com/?signin=true" target="_blank" rel="noopener">https://elc.twelvenyc.com/?signin=true</a></article>
+    <article class="card green url-card"><h3>Sign Up</h3><a href="https://elc.twelvenyc.com/?signup=true" target="_blank" rel="noopener">https://elc.twelvenyc.com/?signup=true</a></article>
+    <article class="card purple url-card"><h3>Account Configurator</h3><a href="https://elc.twelvenyc.com/account-configurator/" target="_blank" rel="noopener">https://elc.twelvenyc.com/account-configurator/</a></article>
+  </div>
+</main><footer class="footer"><span>Twelve Inc. · ELC B2B Architecture Blueprint</span><span>Page 6 of 6</span></footer></section>
+</body></html>

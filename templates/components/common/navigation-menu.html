@@ -1,0 +1,31 @@
+<div class="twelve-mobile-top">
+    <div class="twelve-mobile-logo">{{> components/common/store-logo}}</div>
+    <button class="twelve-mobile-close" type="button" data-twelve-mobile-close aria-label="Close menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+</div>
+
+{{!-- The one dynamic navigation is moved into this slot on mobile. --}}
+<div class="twelve-mobile-body" data-twelve-mobile-menu-slot></div>
+
+<div class="twelve-mobile-footer">
+    <div class="twelve-mobile-selectors">
+        {{#and language_selector language_selector.languages.length '>' 1}}
+            <details class="twelve-mobile-select">
+                <summary aria-label="Language"><span data-locale-code="{{language_selector.active_language_code}}">{{language_selector.active_language_code}}</span></summary>
+                <ul>{{#each language_selector.languages}}<li><a href="{{switch_url}}" data-locale-code="{{code}}" {{#if is_active}}aria-current="true"{{/if}}>{{code}}</a></li>{{/each}}</ul>
+            </details>
+        {{else}}
+            <span class="twelve-mobile-locale">English</span>
+        {{/and}}
+        {{#or customer (unless settings.hide_price_from_guests)}}
+            {{#if currency_selector.currencies.length '>' 1}}
+                <details class="twelve-mobile-select">
+                    <summary aria-label="Currency">{{currency_selector.active_currency_code}}</summary>
+                    <ul>{{#each currency_selector.currencies}}<li><a href="{{{switch_url}}}" data-currency-code="{{code}}" {{#if cart_currency_switch_url}}data-cart-currency-switch-url="{{{cart_currency_switch_url}}}"{{/if}} data-warning="Changing currency may affect your promotions. Continue?" {{#if is_active}}aria-current="true"{{/if}}>{{code}}</a></li>{{/each}}</ul>
+                </details>
+            {{else}}<span class="twelve-mobile-locale">{{currency_selector.active_currency_code}}</span>{{/if}}
+        {{/or}}
+    </div>
+    <span class="twelve-mobile-cities">NY &middot; LDN &middot; PAR</span>
+</div>

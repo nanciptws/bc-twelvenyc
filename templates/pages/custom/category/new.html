@@ -1,0 +1,81 @@
+---
+products:
+    new:
+        limit: 53
+    featured:
+        limit: {{theme_settings.homepage_featured_products_count}}
+    top_sellers:
+        limit: {{theme_settings.homepage_top_products_count}}
+category:
+    products:
+        limit: {{theme_settings.categorypage_products_per_page}}
+customer:
+    wishlists:
+        limit: 10
+gql: "{ customer { formFields { name ... on MultipleChoiceFormFieldValue { value } } } }"
+---
+
+{{inject "categoryProductsPerPage" theme_settings.categorypage_products_per_page}}
+{{#partial "head"}}
+    {{#if pagination.category.previous}}
+        <link rel="prev" href="{{{pagination.category.previous}}}">
+    {{/if}}
+    {{#if pagination.category.next}}
+        <link rel="next" href="{{{pagination.category.next}}}">
+    {{/if}}
+    {{{stylesheet '/assets/css/category.css'}}}
+{{/partial}}
+
+{{#partial "page"}}
+
+<div class="container">
+    {{#if customer}}
+        {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+    {{/if}}
+</div>
+
+<section class="top-category-hero" hidden>
+    {{#unless theme_settings.hide_category_page_heading }}
+        <h1 class="top-category-hero__title">{{category.name}}</h1>
+    {{/unless}}
+    {{{category.description}}}
+</section>
+
+{{{region name="page_main_banner"}}}
+
+<div class="page twelve-category-page">
+    
+    {{#if customer}}
+        <div class="twelve-category-page__catalogue">
+            <div class="page-content twelve-category-page__products">
+                {{#if products.new}}
+                    {{#if products.new}}
+                        {{> components/products/new products=products.new columns=theme_settings.homepage_new_products_column_count customer=customer wishlists=customer.wishlists}}
+                    {{/if}}
+                {{/if}}
+                <section class="account-policy-message" data-account-empty-products hidden>
+                    <p>{{lang 'categories.no_products'}}</p>
+                </section>
+            </div>
+            <div class="page-region">
+                {{{region name="category_below_content"}}}
+            </div>
+        </div>
+    
+    {{else}}
+        
+        <div class="twelve-product-page__login" style="min-height: 600px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div class="container">
+                <h1>{{lang 'category.login_required.heading'}}</h1>
+                <p>{{lang 'category.login_required.message'}}</p>
+                <a class="button button--primary" href="{{urls.auth.login}}">{{lang 'category.login_required.button'}}</a>
+            </div>
+        </div>
+
+    {{/if}}
+
+    
+</div>
+
+{{/partial}}
+{{> layout/base}}

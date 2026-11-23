@@ -1,0 +1,32 @@
+<nav class="navUser twelve-tools" aria-label="Customer tools">
+    <ul class="navUser-section navUser-section--alt">
+        <li class="navUser-item">
+            <button class="navUser-action twelve-tool" type="button" id="quick-search-expand" data-search="quickSearch" aria-controls="quickSearch" aria-expanded="false" aria-label="Search">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg>
+            </button>
+        </li>
+        <li class="navUser-item twelve-tool-desktop">
+            <a class="navUser-action twelve-tool" href="{{#if customer}}{{urls.account.index}}{{else}}{{urls.auth.login}}{{/if}}" aria-label="Account">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.8 20a7.2 7.2 0 0 1 14.4 0"/></svg>
+            </a>
+        </li>
+        
+        <li class="navUser-item twelve-tool-desktop">
+            <a class="navUser-action twelve-tool" href="/?auth={{random 150 10}}-{{random 125 10}}#/shoppingLists" aria-label="Wish Lists">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 5.8c-2-2.1-5.4-1.8-8.5 1.3C8.9 4 5.5 3.7 3.5 5.8c-3.8 4 1.1 10 8.5 15 7.4-5 12.3-11 8.5-15Z"/></svg>
+            </a>
+        </li>
+        
+        <li class="navUser-item navUser-item--cart">
+            <a class="navUser-action twelve-tool" data-cart-preview href="{{urls.cart}}" aria-controls="cart-preview-dropdown" aria-expanded="false" aria-label="Cart with 0 items">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14l-1.2 13H6.2z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+                <span class="countPill cart-quantity"></span>
+            </a>
+            <div class="twelve-cart-scrim" data-twelve-cart-scrim></div>
+            <div class="dropdown-menu" id="cart-preview-dropdown" aria-hidden="true"></div>
+        </li>
+    </ul>
+    <div class="dropdown dropdown--quickSearch" id="quickSearch" aria-hidden="true" data-prevent-quick-search-close>
+        {{> components/common/quick-search name='nav-quick-search'}}
+    </div>
+</nav>

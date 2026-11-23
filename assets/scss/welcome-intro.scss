@@ -1,0 +1,122 @@
+/* Opening animation from the approved Twelve homepage prototype. */
+.welcome-intro {
+    --logoW: clamp(300px, 42cqw, 560px);
+    --split: .557;
+
+    position: fixed;
+    inset: 0;
+    z-index: 90;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper);
+    container-type: inline-size;
+    transition: opacity 1.8s cubic-bezier(.4, 0, .2, 1), visibility 1.8s;
+    z-index: 99999999999999;
+}
+
+.welcome-intro-pending .welcome-intro {
+    display: flex;
+}
+
+.welcome-intro[hidden] {
+    display: none;
+}
+
+.welcome-intro.done {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.welcome-intro-mark {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: calc(var(--logoW) / 5.108);
+}
+
+.welcome-intro-half {
+    height: 100%;
+    background-color: var(--ink);
+    -webkit-mask-image: url('../img/twelve-wordmark.png');
+    mask-image: url('../img/twelve-wordmark.png');
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: var(--logoW) 100%;
+    mask-size: var(--logoW) 100%;
+}
+
+.welcome-intro-half.l {
+    width: calc(var(--logoW) * var(--split));
+    -webkit-mask-position: left center;
+    mask-position: left center;
+}
+
+.welcome-intro-half.r {
+    width: calc(var(--logoW) * (1 - var(--split)));
+    -webkit-mask-position: right center;
+    mask-position: right center;
+}
+
+.welcome-intro-win {
+    position: relative;
+    flex: none;
+    width: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--ink);
+    transition: width .95s cubic-bezier(.66, 0, .2, 1);
+}
+
+.welcome-intro.open .welcome-intro-win {
+    width: calc(var(--logoW) * .42);
+}
+
+.welcome-intro-win figure {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    background-color: var(--white);
+    background-position: center;
+    background-size: cover;
+    opacity: 0;
+    transition: none;
+}
+
+.welcome-intro-win figure.on {
+    opacity: 1;
+}
+
+.welcome-intro-frame-balmain { background-image: url('https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/welcome-intro-balmain.jpg'); }
+.welcome-intro-frame-tote { background-image: url('https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/welcome-intro-tote.jpg'); }
+.welcome-intro-frame-magnolia { background-image: url('https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/welcome-intro-magnolia.jpg'); }
+.welcome-intro-frame-robe { background-image: url('https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/welcome-intro-robe.jpg'); }
+.welcome-intro-frame-drink { background-image: url('https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/welcome-intro-drink.jpg'); }
+
+.welcome-intro-skip {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    padding: 10px 16px;
+    transform: translateX(-50%);
+    border: 1px solid var(--hair-strong);
+    color: var(--ink-38);
+    font-family: var(--sans-ext);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: .025em;
+    text-transform: uppercase;
+    transition: .2s;
+}
+
+.welcome-intro-skip:hover {
+    border-color: var(--black);
+    color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .welcome-intro-pending .welcome-intro {
+        display: none;
+    }
+}

@@ -1,0 +1,11 @@
+{{#if children}}
+    <details class="twelve-mobile-subgroup">
+        <summary>{{name}}<span class="twelve-plus" aria-hidden="true"></span></summary>
+        <ul class="twelve-mobile-links">
+            <li><a class="twelve-mobile-all" href="{{url}}">All {{name}}</a></li>
+            {{#each children}}<li>{{> components/common/twelve-mobile-category}}</li>{{/each}}
+        </ul>
+    </details>
+{{else}}
+    <a class="twelve-mobile-category-link" href="{{url}}">{{name}}</a>
+{{/if}}

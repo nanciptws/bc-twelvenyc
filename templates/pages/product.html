@@ -1,0 +1,84 @@
+---
+product:
+    videos:
+        limit: {{theme_settings.productpage_videos_count}}
+    reviews:
+        limit: {{theme_settings.productpage_reviews_count}}
+    related_products:
+        limit: {{theme_settings.productpage_related_products_count}}
+    similar_by_views:
+        limit: {{theme_settings.productpage_similar_by_views_count}}
+gql: "{ customer { formFields { name ... on MultipleChoiceFormFieldValue { value } } } }"
+---
+{{inject 'productId' product.id}}
+{{#or customer (unless settings.hide_price_from_guests)}}
+{{inject 'twelvePrice' product.price}}
+{{#if settings.bulk_discount_enabled}}{{inject 'twelveBulkRates' product.bulk_discount_rates}}{{/if}}
+{{/or}}
+{{inject 'twelveCurrency' currency_selector.active_currency_code}}
+{{inject 'twelveStorefrontToken' settings.storefront_api.token}}
+{{inject 'twelveDefaultImage' (cdn theme_settings.default_image_product)}}
+{{inject 'lastTierLimit' 100000}}
+{{inject 'lastTierLimitsByCategory' '{"PR":10000}'}}
+
+{{assignVar "customerRegion" ""}}
+{{#each gql.data.customer.formFields}}
+    {{#if this.name '==' 'Region'}}
+        {{assignVar "customerRegion" this.value}}
+    {{/if}}
+{{/each}}
+
+{{assignVar "customerUserType" ""}}
+{{#each gql.data.customer.formFields}}
+    {{#if this.name '==' 'User Type'}}
+        {{assignVar "customerUserType" this.value}}
+    {{/if}}
+{{/each}}
+
+
+
+{{#partial "page"}}
+<div class="twelve-product-page">
+
+    {{#if customer}}
+
+        {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+    
+        {{#each product.shipping_messages}}
+            {{> components/common/alert/alert-info message}}
+        {{/each}}
+    
+        <div>
+            {{> components/products/twelve-product-view}}
+    
+            {{{region name="product_below_content"}}}
+    
+            {{#if product.videos.list.length}}
+                {{> components/products/videos product.videos}}
+            {{/if}}
+    
+            {{#all settings.show_product_reviews theme_settings.show_product_reviews (if theme_settings.show_product_details_tabs '!==' true)}}
+                {{> components/products/reviews reviews=product.reviews product=product urls=urls}}
+            {{/all}}
+    
+            {{#if product.related_products}}<section class="twelve-pdp-related twelve-pdp-related--suggested"><div class="twelve-pdp-section-head"><div><span class="eyebrow">Pairs well</span><h2>You may also like</h2></div></div><ul class="productGrid">{{#each product.related_products}}<li class="product">{{> components/products/card settings=../settings theme_settings=../theme_settings customer=../customer hide_wishlist=true}}</li>{{/each}}</ul></section>{{/if}}
+    <section class="twelve-pdp-related twelve-pdp-related--recent" data-pdp-recent hidden><hr class="twelve-pdp-section-rule"><div class="twelve-pdp-section-head"><div><span class="eyebrow">Your session</span><h2>Recently viewed</h2></div></div><ul class="productGrid" data-pdp-recent-grid></ul></section>
+        </div>
+
+        {{> components/products/schema}}
+
+    {{else}}
+
+        <div class="twelve-product-page__login" style="min-height: 600px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div class="container">
+                <h1>Login to view product details</h1>
+                <p>To view product details, please log in to your account.</p>
+                <a class="button button--primary" href="{{urls.auth.login}}">Sign in</a>
+            </div>
+        </div>
+
+    {{/if}}
+
+</div>
+{{/partial}}
+{{> layout/base}}

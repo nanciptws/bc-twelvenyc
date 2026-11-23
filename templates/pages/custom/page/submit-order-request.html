@@ -1,0 +1,202 @@
+---
+cart: true
+gql: "{ customer { formFields { name ... on MultipleChoiceFormFieldValue { value } } } }"
+---
+{{#partial "head"}}{{{stylesheet '/assets/css/submit-order-request.css'}}}{{/partial}}
+{{#partial "page"}}
+<main class="order-request page">
+  <div class="order-request__inner">
+
+    {{assignVar "customerRegion" ""}}
+    {{#each gql.data.customer.formFields}}
+      {{#if this.name '==' 'Region'}}
+        {{assignVar "customerRegion" this.value}}
+      {{/if}}
+    {{/each}}
+
+
+    {{#unless cart_id}}
+    <div style="text-align: center;">
+      <h1>Your order is empty</h1>
+      <h4>Browse the catalogue to add products.</h4>
+      <a class="twelve-button" href="/shop/" style="margin: 0 auto;display: inline-block;">Browse the catalogue</a>
+    </div>
+    {{/unless}}
+
+
+    
+    {{#if cart_id}}
+    {{!-- 
+    <div class="order-request__crumbs">{{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}</div>
+    --}}
+
+    <section class="order-request__card">
+      
+      <h1>Order Request</h1>
+
+      <div class="order-request__notice">
+        <span class="twelve-eyebrow">This order requires review</span>
+        <p>
+          Submitting creates an order in review status. We will respond to your order request within 2 business days. If you need to follow up, please email <a href="mailto:ELC_NACR_GLOBAL@twelvenyc.com">ELC_NACR_GLOBAL@twelvenyc.com</a> &nbsp; or &nbsp; <a href="/contact/">Contact Us</a>
+        </p>
+      </div>
+      <section class="order-request__items">
+        <p class="twelve-pdp-note" style="margin-top: 0;">
+            <strong>Price does not include shipping and duties</strong>
+        </p>
+        <header>
+          <h2 class="twelve-eyebrow">Items in your cart <span>({{cart.items.length}})</span></h2>{{#if cart.items.length}}<button type="button" data-request-toggle>Show less</button>{{/if}}
+        </header>
+        <div data-request-items>{{#each cart.items}}<article class="order-request__item">
+          {{> components/common/responsive-img image=image class="order-request__image" fallback_size=../theme_settings.productthumb_size lazyload="lazyload" default_image=../theme_settings.default_image_product}}
+          <div><span class="order-request__sku">{{sku}}</span><a href="{{url}}">{{name}}</a></div><span class="order-request__qty">Qty: {{quantity}}</span>
+        </article>{{/each}}</div>
+        {{#unless cart.items.length}}<p class="order-request__empty">Your cart is empty. <a href="/shop/">Browse the catalogue</a>.</p>{{/unless}}
+      </section>
+      
+      <form class="order-request__form" action="{{lang 'endpoints.phpServer'}}order-request/request.php" method="post" enctype="multipart/form-data" data-order-request-form>
+        <input type="hidden" name="cart_id" value="{{cart_id}}" />
+        <input type="hidden" name="contact_email" value="{{customer.email}}" />
+        <input type="hidden" name="contact_id" value="{{customer.id}}" />
+
+        {{#each cart.items}}<input type="hidden" name="cart_item_id[]" value="{{id}}"><input type="hidden" name="cart_item_quantity[]" value="{{quantity}}"><input type="hidden" name="cart_item_image[]" value="{{getImage image ../theme_settings.productthumb_size (cdn ../theme_settings.default_image_product)}}">{{/each}}
+        
+        <textarea class="order-request__summary-field" name="contact_question" aria-hidden="true" tabindex="-1" data-request-summary>{{#each cart.items}}{{sku}} | {{name}} | Qty: {{quantity}} | {{price.formatted}}
+  {{/each}}</textarea>
+        <div class="order-request__two-col"><label><span>First name</span><input type="text" name="contact_fullname" value="{{customer.name}}" autocomplete="given-name"></label><label><span>Brand <b>*</b></span><select name="contact_companyname" data-account-brand-select required><option value="">Select...</option></select></label></div>
+        <label><span>Region of request</span><select name="request_region" data-admin-region-select data-selected-region='{{getVar "customerRegion"}}'><option value="">Select...</option></select></label>
+        <label><span>Requested delivery date <b>*</b></span><input type="date" name="requested_delivery_date" required></label>
+        <label><span>Delivery region <b>*</b></span><select name="delivery_region" data-admin-region-select data-selected-region='{{getVar "customerRegion"}}' required><option value="">Select...</option></select></label>
+        <section class="order-request__shipping-address" data-shipping-address><span class="twelve-eyebrow">Office address</span><div class="order-request__shipping-address-fields"><div class="order-request__location-two-col"><label><span>Address <b>*</b></span><input type="text" name="shipping_address" placeholder="Street address" autocomplete="shipping street-address" data-location-address required></label><label><span>Apartment / Suite / Building (optional)</span><input type="text" name="shipping_apartment" autocomplete="shipping address-line2" data-location-apartment></label></div><div class="order-request__location-two-col"><label><span>City <b>*</b></span><input type="text" name="shipping_city" autocomplete="shipping address-level2" data-location-city required></label><label><span>Country <b>*</b></span><select name="shipping_country" autocomplete="shipping country" data-location-country required><option value="">Loading countries...</option></select></label></div><div class="order-request__location-two-col"><label data-state-select-wrap hidden><span>State / Province <b>*</b></span><select name="shipping_state" autocomplete="shipping address-level1" data-location-state-select disabled></select></label><label data-state-input-wrap hidden><span>State / Province (optional)</span><input type="text" name="shipping_state_text" placeholder="Enter state / province" autocomplete="shipping address-level1" data-location-state-input disabled></label><label><span>Postal code <b>*</b></span><input type="text" name="shipping_postal_code" autocomplete="shipping postal-code" data-location-postal required></label></div></div></section>
+        <section class="order-request__freight"><span class="twelve-eyebrow">Freight</span><p>Prices shown on this site are Ex Works and <strong>do not include shipping</strong>. Freight, duties and distribution fees are quoted separately.</p><label class="order-request__check"><input type="checkbox" name="freight_requested" value="Yes" data-freight-toggle><span>Yes &mdash; please calculate freight for this request</span></label><div class="order-request__freight-fields" data-freight-fields hidden><header class="order-request__locations-header"><span class="twelve-eyebrow">Shipping Addresses <b>*</b></span><button type="button" class="order-request__add-location" data-add-location>+ Add shipping address</button></header><p class="order-request__location-hint">Enter the quantity of each cart item shipping to this address.</p><template data-country-options><option value="">Loading countries...</option></template><template data-delivery-items-template><div class="order-request__location-items"><div class="order-request__location-items-header"><span>Item</span><span>Left to allocate</span><span>Quantity</span></div>{{#each cart.items}}<div class="order-request__location-item" data-location-item data-item-index="{{@index}}" data-item-total="{{quantity}}" data-item-sku="{{sku}}" data-item-price="{{price.formatted}}"><div class="order-request__location-product">{{> components/common/responsive-img image=image class="order-request__location-image" fallback_size=../theme_settings.productthumb_size lazyload="lazyload" default_image=../theme_settings.default_image_product}}<div><span class="order-request__sku">{{sku}}</span><strong>{{name}}</strong></div></div><span class="order-request__location-remaining" data-location-remaining>{{quantity}}</span><label class="order-request__quantity-label"><span class="u-hiddenVisually">Quantity for {{name}}</span><input type="number" name="delivery_quantity[]" value="0" min="0" max="{{quantity}}" inputmode="numeric" data-location-quantity aria-label="Quantity for {{name}}"></label><input type="hidden" name="delivery_item[]" value="{{@index}}"><input type="hidden" name="delivery_item_label[]" value="{{sku}} - {{name}}"></div>{{/each}}</div></template><div class="order-request__allocation-status" data-allocation-status role="status" aria-live="polite"></div><div data-delivery-locations></div></div></section>
+        <aside class="order-request__customizing" aria-labelledby="customizing-order-title">
+          <h2 id="customizing-order-title">Want to make it your own?</h2>
+          <p class="order-request__customizing-intro">This product can be tailored to your brand. Keep the item you see here and we&rsquo;ll adapt the details.</p>
+          <div class="order-request__customizing-step"><span class="order-request__customizing-logo-icon" aria-hidden="true">A</span><p><strong>Add your logo</strong><small>Applied using the decoration method specified in your quote.</small></p></div>
+          <div class="order-request__customizing-step"><span class="order-request__customizing-color-icon" aria-hidden="true"></span><p><strong>Change the colorway</strong><small>Match the product&rsquo;s materials to your Pantone references.</small></p></div>
+          <div class="order-request__customizing-next-steps"><h3>Next steps</h3><p>Submit your logo files and artwork notes with your order request. We&rsquo;ll send back a rendering for approval.</p></div>
+          <p class="order-request__customizing-note">Customization may vary by item and MOQ.<br>Minor size updates available on select products.</p>
+        </aside>
+        <label><span>MARKET</span><input type="text" name="contact_market"></label>
+        <label><span>ORDER NOTES</span><textarea name="request_context" rows="4" maxlength="1000" placeholder="Share shipping specifications, MOQ questions, or special requests. Customizing? Include logo placement and Pantone references..." data-request-context></textarea><small data-request-count>0/1000</small></label>
+        <label><span>LOGO FILES & ATTACHMENTS (OPTIONAL)</span><input class="order-request__upload" type="file" name="request_attachment[]" multiple><em>Max 10MB per file. Vector logo files preferred.</em></label>
+        {{{forms.contact.recaptcha.markup}}}
+        <button class="twelve-button" type="submit"{{#unless cart.items.length}} disabled{{/unless}}>Create order for review</button>
+        
+        <p class="order-request__foot"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="1"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><span>This creates an order in review status and sends the details to the Twelve team.</span></p>
+
+        <p class="order-request__status" data-request-status role="status" aria-live="polite" hidden></p>
+      </form>
+    </section>
+    {{/if}}
+
+  </div>
+  
+
+</main>
+<script>
+(function(){
+  const customerRegion = '{{getVar "customerRegion"}}';
+  function selectCustomerRegion(){var region=String(customerRegion||'').trim().toUpperCase();if(!region)return;Array.prototype.forEach.call(document.querySelectorAll('select[name="request_region"],select[name="delivery_region"]'),function(select){var match=Array.prototype.filter.call(select.options,function(option){return String(option.value||option.textContent).trim().toUpperCase()===region;})[0];if(match)select.value=match.value;});}
+  selectCustomerRegion();
+  var t=document.querySelector('[data-request-toggle]'),i=document.querySelector('[data-request-items]');
+  if(t&&i)t.addEventListener('click',function(){var h=i.hasAttribute('hidden');if(h)i.removeAttribute('hidden');else i.setAttribute('hidden','');t.textContent=h?'Show less':'View all'});
+  var f=document.querySelector('[data-freight-toggle]'),ff=document.querySelector('[data-freight-fields]'),locations=document.querySelector('[data-delivery-locations]'),shippingAddress=document.querySelector('[data-shipping-address]'),addLocation=document.querySelector('[data-add-location]'),itemTemplate=document.querySelector('[data-delivery-items-template]'),countryOptions=document.querySelector('[data-country-options]'),allocationStatus=document.querySelector('[data-allocation-status]'),locationNumber=0,itemTotals=[],countryData=[];
+  if(itemTemplate)Array.prototype.forEach.call(itemTemplate.content.querySelectorAll('[data-location-item]'),function(item){itemTotals.push({label:item.querySelector('strong').textContent,total:Number(item.getAttribute('data-item-total'))||0});});
+  function locationTemplate(){
+    locationNumber++;
+    return '<article class="order-request__location" data-location><button type="button" class="order-request__location-toggle" data-location-toggle>Shipping Address '+locationNumber+' <span class="order-request__chevron" aria-hidden="true"></span></button><div class="order-request__location-body" data-location-body><div class="order-request__location-inner">'+itemTemplate.innerHTML+'<div class="order-request__location-two-col"><label><span>Address <b>*</b></span><input type="text" name="delivery_address[]" placeholder="Street address" autocomplete="street-address" data-location-address required></label><label><span>Apartment / Suite / Building (optional)</span><input type="text" name="delivery_apartment[]" autocomplete="address-line2" data-location-apartment></label></div><div class="order-request__location-two-col"><label><span>City <b>*</b></span><input type="text" name="delivery_city[]" data-location-city required></label><label><span>Country <b>*</b></span><select name="delivery_country[]" data-location-country required>'+countryOptions.innerHTML+'</select></label></div><div class="order-request__location-two-col"><label data-state-select-wrap hidden><span>State / Province <b>*</b></span><select name="delivery_state[]" data-location-state-select disabled></select></label><label data-state-input-wrap hidden><span data-state-input-label>State / Province (optional)</span><input type="text" name="delivery_state_text[]" placeholder="Enter state / province" data-location-state-input disabled></label><label><span>Postal code <b>*</b></span><input type="text" name="delivery_postal_code[]" data-location-postal required></label></div><button type="button" class="order-request__remove-location" data-remove-location>Remove location</button></div></div></article>';
+  }
+  function syncLocations(){var all=locations.querySelectorAll('[data-location]');Array.prototype.forEach.call(all,function(row,index){row.querySelector('[data-location-toggle]').firstChild.nodeValue='Shipping Address '+(index+1)+' ';row.querySelector('[data-remove-location]').hidden=all.length<2;if(row.classList.contains('is-open'))openLocation(row,true);});updateAllocation();}
+  function openLocation(row,on){var body=row.querySelector('[data-location-body]');row.classList.toggle('is-open',on);body.style.maxHeight=on?body.scrollHeight+'px':'0px';}
+  function populateCountries(){var options='<option value="">Select...</option>'+countryData.map(function(country){return '<option value="'+escapeHtml(country.code)+'">'+escapeHtml(country.name)+'</option>';}).join('');countryOptions.innerHTML=options;Array.prototype.forEach.call(document.querySelectorAll('[data-location-country]'),function(select){var selected=select.value;select.innerHTML=options;if(selected)select.value=selected;});}
+  function loadCountries(){fetch('/internalapi/v1/store/countries',{credentials:'same-origin',headers:{Accept:'application/json'}}).then(function(response){if(!response.ok)throw new Error('Country request failed');return response.json();}).then(function(response){countryData=response.data||[];populateCountries();}).catch(function(){var options='<option value="">Countries could not be loaded</option>';countryOptions.innerHTML=options;Array.prototype.forEach.call(document.querySelectorAll('[data-location-country]'),function(select){select.innerHTML=options;});});}
+  function showStateField(element,show){element.hidden=!show;element.classList.toggle('is-hidden',!show);}
+  function updateState(row){var countryCode=row.querySelector('[data-location-country]').value,stateSelect=row.querySelector('[data-location-state-select]'),stateInput=row.querySelector('[data-location-state-input]'),selectWrap=row.querySelector('[data-state-select-wrap]'),inputWrap=row.querySelector('[data-state-input-wrap]'),country=countryData.filter(function(entry){return entry.code===countryCode;})[0],states=country&&Array.isArray(country.subdivisions)?country.subdivisions:[];stateSelect.required=false;stateSelect.disabled=true;stateInput.required=false;stateInput.disabled=true;stateInput.value='';showStateField(selectWrap,false);showStateField(inputWrap,false);if(country&&states.length){stateSelect.innerHTML='<option value="">Select...</option>'+states.map(function(state){return '<option value="'+escapeHtml(state.name)+'">'+escapeHtml(state.name)+'</option>';}).join('');showStateField(selectWrap,true);stateSelect.disabled=false;stateSelect.required=true;}else if(country){stateSelect.innerHTML='';showStateField(inputWrap,true);stateInput.disabled=false;stateInput.required=false;}if(row.classList.contains('is-open'))openLocation(row,true);}
+  function copyShippingAddressToFirstLocation(){
+    var row=locations&&locations.querySelector('[data-location]');
+    if(!row||!shippingAddress)return;
+    var destinationAddress=row.querySelector('[data-location-address]');
+    if(!destinationAddress||String(destinationAddress.value||'').trim())return;
+    var sourceStateSelect=shippingAddress.querySelector('[data-location-state-select]'),sourceStateInput=shippingAddress.querySelector('[data-location-state-input]'),sourceState=sourceStateSelect&&!sourceStateSelect.disabled?sourceStateSelect.value:sourceStateInput&&!sourceStateInput.disabled?sourceStateInput.value:'';
+    ['address','apartment','city','country','postal'].forEach(function(name){var source=shippingAddress.querySelector('[data-location-'+name+']'),destination=row.querySelector('[data-location-'+name+']');if(source&&destination)destination.value=source.value;});
+    updateState(row);
+    var destinationStateSelect=row.querySelector('[data-location-state-select]'),destinationStateInput=row.querySelector('[data-location-state-input]');
+    if(destinationStateSelect&&!destinationStateSelect.disabled)destinationStateSelect.value=sourceState;
+    else if(destinationStateInput&&!destinationStateInput.disabled)destinationStateInput.value=sourceState;
+    if(row.classList.contains('is-open'))openLocation(row,true);
+  }
+  function validateLocations(){var valid=true;Array.prototype.some.call(locations.querySelectorAll('[data-location]'),function(row,index){var fields=row.querySelectorAll('input[required],select[required],textarea[required]');Array.prototype.some.call(fields,function(field){if(field.type==='hidden'||field.disabled||field.closest('[hidden]')||field.hidden)return false;if(!String(field.value||'').trim()){field.focus();var label=field.closest('label'),labelText=label?label.querySelector('span'):null;window.alert('Please complete '+(labelText?labelText.textContent.replace('*','').trim():'the required field')+' for Shipping Address '+(index+1)+'.');valid=false;return true;}return false;});var allocated=0;Array.prototype.forEach.call(row.querySelectorAll('[data-location-quantity]'),function(quantity){allocated+=Number(quantity.value)||0;});if(valid&&allocated<1){row.querySelector('[data-location-quantity]').focus();window.alert('Please enter a quantity for at least one item in Shipping Address '+(index+1)+'.');valid=false;}return !valid;});return valid;}
+  function renderAllocationStatus(complete,used){if(!allocationStatus)return;allocationStatus.innerHTML='';allocationStatus.classList.toggle('is-complete',complete);if(complete){allocationStatus.textContent='All items are allocated.';return;}var list=document.createElement('ul');list.className='order-request__allocation-list';itemTotals.forEach(function(item,index){var remaining=item.total-used[index];if(remaining>0){var entry=document.createElement('li');entry.textContent=item.label+' - '+remaining;list.appendChild(entry);}});allocationStatus.appendChild(document.createTextNode('Remaining to allocate:'));allocationStatus.appendChild(list);}
+  function updateAllocation(){var used=[];itemTotals.forEach(function(){used.push(0);});Array.prototype.forEach.call(locations.querySelectorAll('[data-location-item]'),function(item){var index=Number(item.getAttribute('data-item-index')),quantity=Number(item.querySelector('[data-location-quantity]').value)||0;if(itemTotals[index])used[index]+=quantity;});Array.prototype.forEach.call(locations.querySelectorAll('[data-location-item]'),function(item){var index=Number(item.getAttribute('data-item-index')),input=item.querySelector('[data-location-quantity]'),quantity=Number(input.value)||0,remaining=item.querySelector('[data-location-remaining]');if(itemTotals[index]){var left=Math.max(0,itemTotals[index].total-used[index]),available=quantity+left;input.max=available;if(quantity>available)input.value=available;input.disabled=false;input.readOnly=available===0;if(remaining)remaining.textContent=left;}});var complete=itemTotals.length>0&&itemTotals.every(function(item,index){return used[index]===item.total;});if(addLocation)addLocation.hidden=complete;renderAllocationStatus(complete,used);return complete;}
+  function add(){locations.insertAdjacentHTML('beforeend',locationTemplate());syncLocations();var row=locations.lastElementChild;openLocation(row,true);updateState(row);}
+  loadCountries();
+  if(shippingAddress)shippingAddress.addEventListener('change',function(event){if(event.target.matches('[data-location-country]'))updateState(shippingAddress);});
+  if(f&&ff&&locations){f.addEventListener('change',function(){ff.hidden=!f.checked;if(f.checked){if(!locations.children.length)add();copyShippingAddressToFirstLocation();}});}
+  if(addLocation)addLocation.addEventListener('click',function(){if(!validateLocations())return;if(!updateAllocation())addLocation.hidden=false,add();});
+  if(locations){locations.addEventListener('click',function(e){var toggle=e.target.closest('[data-location-toggle]'),remove=e.target.closest('[data-remove-location]');if(toggle){var row=toggle.closest('[data-location]');openLocation(row,!row.classList.contains('is-open'));}if(remove){remove.closest('[data-location]').remove();syncLocations();}});locations.addEventListener('input',function(e){var row=e.target.closest('[data-location]');if(e.target.matches('[data-location-quantity]')){var maximum=Number(e.target.max),quantity=Number(e.target.value);if(quantity>maximum)quantity=maximum;if(quantity<0)quantity=0;if(e.target.value!=='')e.target.value=String(quantity);}if(row&&row.classList.contains('is-open'))openLocation(row,true);updateAllocation();});locations.addEventListener('change',function(e){var row=e.target.closest('[data-location]');if(!row)return;if(e.target.matches('[data-location-country]'))updateState(row);updateAllocation();});}
+  var c=document.querySelector('[data-request-context]'),n=document.querySelector('[data-request-count]');if(c&&n)c.addEventListener('input',function(){n.textContent=c.value.length+'/1000'});
+  var attachmentInput=document.querySelector('.order-request__upload'),maximumAttachmentSize=10*1024*1024;
+  function validateAttachments(){if(!attachmentInput)return true;var oversized=[];Array.prototype.forEach.call(attachmentInput.files||[],function(file){if(file.size>maximumAttachmentSize)oversized.push(file.name);});if(!oversized.length)return true;window.alert('Each attachment must be 10 MB or smaller. Please choose a smaller file for: '+oversized.join(', '));attachmentInput.value='';return false;}
+  if(attachmentInput)attachmentInput.addEventListener('change',validateAttachments);
+  var form=document.querySelector('[data-order-request-form]'),s=document.querySelector('[data-request-summary]'),status=document.querySelector('[data-request-status]'),submitButton=form&&form.querySelector('button[type="submit"]');
+  function escapeHtml(value){return String(value==null?'':value).replace(/[&<>'"]/g,function(character){return {'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character];});}
+  function lineTotal(price,quantity){var match=String(price||'').match(/^(.*?)(-?[0-9,]+(?:\.[0-9]+)?)([^0-9]*)$/);if(!match)return price||'Not provided';return match[1]+(Number(match[2].replace(/,/g,''))*quantity).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})+match[3];}
+  function valueFor(field){return field&&field.value?field.value:'Not provided';}
+  function selectedText(field){return field&&field.options[field.selectedIndex]?field.options[field.selectedIndex].textContent:'Not provided';}
+  function successMarkup(reference){
+    var fileInput=form.querySelector('input[type="file"]'),files=[];
+    Array.prototype.forEach.call(fileInput&&fileInput.files||[],function(file){files.push(escapeHtml(file.name));});
+    var locationMarkup=[];
+    Array.prototype.forEach.call(locations.querySelectorAll('[data-location]'),function(row,index){var stateSelect=row.querySelector('[data-location-state-select]'),stateInput=row.querySelector('[data-location-state-input]'),stateValue=stateSelect&&stateSelect.value?stateSelect.value:stateInput&&stateInput.value?stateInput.value:'Not provided',itemRows=[];Array.prototype.forEach.call(row.querySelectorAll('[data-location-item]'),function(item){var quantity=Number(item.querySelector('[data-location-quantity]').value)||0,price=item.getAttribute('data-item-price')||'Not provided';if(quantity>0)itemRows.push('<tr><td>'+escapeHtml(item.querySelector('strong').textContent)+'</td><td>'+escapeHtml(item.getAttribute('data-item-sku')||'Not provided')+'</td><td>'+escapeHtml(valueFor(form.contact_companyname))+'</td><td>'+quantity+'</td><td>'+escapeHtml(price)+'</td><td>'+escapeHtml(lineTotal(price,quantity))+'</td></tr>');});var apartment=valueFor(row.querySelector('[data-location-apartment]'));if(apartment==='Not provided')apartment='';locationMarkup.push('<section class="order-request__confirmation-address"><h3>Shipping Address '+(index+1)+'</h3><p><strong>'+escapeHtml(valueFor(form.contact_fullname))+'</strong><br>'+escapeHtml(valueFor(form.contact_companyname))+'<br>'+escapeHtml(valueFor(row.querySelector('[data-location-address]')))+(apartment?'<br>'+escapeHtml(apartment):'')+'<br>'+escapeHtml(valueFor(row.querySelector('[data-location-city]')))+', '+escapeHtml(stateValue)+' '+escapeHtml(valueFor(row.querySelector('[data-location-postal]')))+'<br>'+escapeHtml(selectedText(row.querySelector('[data-location-country]')))+'</p><a href="mailto:'+escapeHtml(valueFor(form.contact_email))+'">'+escapeHtml(valueFor(form.contact_email))+'</a><div class="order-request__confirmation-table-wrap"><table class="order-request__confirmation-table"><thead><tr><th>Cart items</th><th>SKU</th><th>Brand</th><th>Qty</th><th>Price</th><th>Total</th></tr></thead><tbody>'+itemRows.join('')+'</tbody></table></div></section>');});
+    var shippingState=form.shipping_state&&!form.shipping_state.disabled?form.shipping_state.value:form.shipping_state_text.value;
+    var shippingMarkup=form.freight_requested.checked?'':'<div class="order-request__confirmation-block"><span class="twelve-eyebrow">Shipping Address</span><p>'+escapeHtml(valueFor(form.shipping_address))+'<br>'+escapeHtml(valueFor(form.shipping_apartment))+'<br>'+escapeHtml(valueFor(form.shipping_city))+', '+escapeHtml(shippingState||'Not provided')+' '+escapeHtml(valueFor(form.shipping_postal_code))+'<br>'+escapeHtml(selectedText(form.shipping_country))+'</p></div>';
+    return '<section class="order-request__confirmation" role="status" aria-live="polite"><div class="order-request__confirmation-mark" aria-hidden="true">&#10003;</div><span class="twelve-eyebrow">Request received</span><h2>Thank you</h2><p class="order-request__confirmation-lede">Your order request was sent successfully. A Twelve representative will review these details and contact you with next steps.</p><p class="order-request__confirmation-reference">Request reference: <strong>'+escapeHtml(reference)+'</strong></p><div class="order-request__confirmation-grid"><div><span class="twelve-eyebrow">First name</span><p>'+escapeHtml(valueFor(form.contact_fullname))+'</p></div><div><span class="twelve-eyebrow">Email</span><p>'+escapeHtml(valueFor(form.contact_email))+'</p></div><div><span class="twelve-eyebrow">Brand</span><p>'+escapeHtml(valueFor(form.contact_companyname))+'</p></div><div><span class="twelve-eyebrow">Request region</span><p>'+escapeHtml(valueFor(form.request_region))+'</p></div>'+(valueFor(form.contact_market)!=='Not provided'?'<div><span class="twelve-eyebrow">Market</span><p>'+escapeHtml(valueFor(form.contact_market))+'</p></div>':'')+'<div><span class="twelve-eyebrow">Delivery region</span><p>'+escapeHtml(valueFor(form.delivery_region))+'</p></div><div><span class="twelve-eyebrow">Requested delivery date</span><p>'+escapeHtml(valueFor(form.requested_delivery_date))+'</p></div><div><span class="twelve-eyebrow">Freight</span><p>'+escapeHtml(form.freight_requested.checked?'Yes':'No')+'</p></div></div>'+shippingMarkup+'<div class="order-request__confirmation-block"><span class="twelve-eyebrow">Cart items</span><pre>'+escapeHtml(s.value.trim()||'No cart items')+'</pre></div>'+locationMarkup.join('')+'<div class="order-request__confirmation-block"><span class="twelve-eyebrow">Context</span><p>'+escapeHtml(valueFor(form.request_context))+'</p></div>'+(files.length?'<div class="order-request__confirmation-block"><span class="twelve-eyebrow">Attachments</span><p>'+files.join('<br>')+'</p></div>':'')+'</section>';
+  }
+  if(form&&s)form.addEventListener('submit',function(event){
+    event.preventDefault();
+    if(!validateAttachments())return;
+    if(f.checked&&!validateLocations())return;
+    if(f.checked&&!updateAllocation()){if(status){status.hidden=false;status.textContent='Please allocate the full quantity of every cart item before submitting.';}return;}
+    s.value=s.value.trim();
+    if(status){status.hidden=false;status.textContent='Sending your order request...';}
+    if(submitButton)submitButton.disabled=true;
+    var formData=new FormData(form);Array.prototype.forEach.call(locations.querySelectorAll('[data-location]'),function(row){var stateSelect=row.querySelector('[data-location-state-select]'),stateInput=row.querySelector('[data-location-state-input]');formData.append('delivery_state_value[]',stateSelect&&!stateSelect.disabled?stateSelect.value:stateInput&&!stateInput.disabled?stateInput.value:'');});
+    fetch(form.action,{method:'POST',body:formData,headers:{Accept:'application/json'}}).then(function(response){if(!response.ok)return response.text().then(function(message){throw new Error(message||'Request failed');});return response.json();}).then(function(result){
+      if(!result.reference)throw new Error('The request reference was not returned.');
+
+      if(typeof window.gtag==='function'){
+        window.gtag('event','Quotes requested',{
+          id:valueFor(form.contact_id),
+          email:valueFor(form.contact_email),
+          request_reference:result.reference,
+          cart_id:valueFor(form.cart_id),
+          brand:valueFor(form.contact_companyname),
+          request_region:valueFor(form.request_region),
+          delivery_region:valueFor(form.delivery_region),
+          requested_delivery_date:valueFor(form.requested_delivery_date),
+          freight_requested:!!form.freight_requested.checked,
+          cart_item_ids:Array.prototype.map.call(form.querySelectorAll('[name="cart_item_id[]"]'),function(input){return input.value;}).join(','),
+          cart_item_quantities:Array.prototype.map.call(form.querySelectorAll('[name="cart_item_quantity[]"]'),function(input){return input.value;}).join(','),
+          page_type:'{{page_type}}',
+          page_url:window.location.href,
+          events:{name:'Quotes requested'}
+        });
+      }
+
+      var card=form.closest('.order-request__card');
+      if(card)card.classList.add('is-success');
+      form.outerHTML=successMarkup(result.reference);
+    }).catch(function(error){if(status){status.hidden=false;status.textContent=error.message||'We could not send your request. Please try again.';}}).finally(function(){if(submitButton)submitButton.disabled=false;});
+  });
+}());
+</script>
+
+<style>
+  textarea{
+    border: 1px solid !important;
+    padding: 15px !important;
+  }
+</style>
+  
+{{/partial}}{{> layout/base}}

@@ -1,0 +1,153 @@
+%% Twelve Inc. ELC B2B Customer Portal - consolidated, valid Mermaid source
+%% Status: [V] verified; [R] required; [P] proposed/recommended
+flowchart TB
+  classDef customer fill:#E8F1FF,stroke:#2962A3,color:#102A43
+  classDef admin fill:#F3E8FF,stroke:#7048A8,color:#321B52
+  classDef service fill:#E7F8F0,stroke:#25815B,color:#123D2C
+  classDef bc fill:#FFF2D8,stroke:#B66A00,color:#5B3500
+  classDef data fill:#F3F4F6,stroke:#59636E,color:#222
+  classDef control fill:#FFE7E7,stroke:#B63A3A,color:#571A1A
+
+  subgraph OVERALL[1. OVERALL SYSTEM ARCHITECTURE - SEVEN LAYERS]
+    direction LR
+    O1[Customer presentation<br/>storefront, login/register, catalog, PDP, search, cart, order form]:::customer
+    O2[Twelve Inc. admin<br/>login, company selection, Account Configurator]:::admin
+    O3[Authentication + company validation<br/>session, domain matching, association]:::service
+    O4[Access control<br/>company, brand, product, backend authorization]:::control
+    O5[Order processing<br/>validation, freight decision, reference, idempotency]:::service
+    O6[Integration<br/>BigCommerce REST/GraphQL, B2B API, email]:::bc
+    O7[Data<br/>companies, customers, catalog, carts, orders, request ledger, notifications]:::data
+    O1 --> O3 --> O4 --> O5 --> O6 --> O7
+    O2 --> O6
+  end
+
+  subgraph EXTRA[BIGCOMMERCE B2B COMPANY - CUSTOM EXTRA FIELDS]
+    direction LR
+    X0[BigCommerce B2B Company]:::bc
+    X1[Extra Field: Company Domain<br/>Purpose: existing-company registration match<br/>Example: twelvenyc.com]:::bc
+    X2[Extra Field: Account Configurator<br/>Purpose: company brand/product access<br/>Value: versioned JSON]:::bc
+    X0 --> X1
+    X0 --> X2
+  end
+  O6 --> X0
+
+  subgraph REG[2-5. REGISTRATION, DOMAIN VALIDATION, COMPANY MATCHING, AUTHENTICATION]
+    direction LR
+    R1[Enter email]:::customer --> R2[Normalize and extract domain]:::service
+    R2 --> R3[Retrieve existing active companies<br/>and exact Company Domain field]:::service
+    X1 --> R3
+    R3 --> R4{Exactly one match?}:::control
+    R4 -->|Yes| R5[Create customer account<br/>associate existing company]:::service
+    R5 --> R6[Verify email + BigCommerce login]:::customer
+    R6 --> R7{Authenticated company context valid?}:::control
+    R7 -->|Yes| R8[Protected session; load policy]:::service
+    R7 -->|No| R9[Deny protected pages; audit]:::control
+    R4 -->|No / ambiguous / error| R10[Do not create a company]:::control
+    R10 --> R11[Show exact company-not-found support message]:::customer
+  end
+  O3 --> R1
+
+  subgraph ADMIN[6. ADMIN ACCOUNT CONFIGURATOR]
+    direction LR
+    A1[Authorized Twelve Inc. admin]:::admin --> A2[Search/select existing company - V]:::admin
+    A2 --> A3[Load current Account Configurator JSON - V]:::service
+    A3 --> A4[Select brand-level and product-level permissions - V]:::admin
+    A4 --> A5[Validate IDs, schema, conflicts, concurrency - P]:::control
+    A5 --> A6[Update exact Extra Field: Account Configurator]:::bc
+    A6 --> A7[Audit change + invalidate policy cache]:::data
+    X2 --> A3
+    A6 --> X2
+  end
+  O2 --> A1
+
+  subgraph PERM[7-8. BRAND-LEVEL AND PRODUCT-LEVEL PERMISSION WORKFLOWS]
+    direction LR
+    P1[Trusted customer -> company ID]:::service --> P2[Retrieve/parse Account Configurator]:::service
+    X2 --> P2
+    P2 --> P3[Brand permission evaluator]:::control --> P4[Product permission evaluator]:::control
+    P4 --> P5{Authorized?}:::control
+    P5 -->|Yes| P6[Serve permitted content/action]:::customer
+    P5 -->|No| P7[403/404; no metadata leakage; audit]:::control
+  end
+  R8 --> P1
+
+  subgraph BROWSE[9-10. PRODUCT BROWSING AND CART WORKFLOWS]
+    direction LR
+    B1[Homepage / nav / brand / category / PLP / search]:::customer --> B2[Backend policy check]:::control
+    B2 --> B3[PDP / direct product URL]:::customer --> B4[Re-check product permission]:::control
+    B4 --> B5[Add SKU + quantity to cart]:::customer --> B6[Re-check cart ownership and all item permissions]:::control
+    B6 --> B7[Proceed to Submit Order Request]:::customer
+  end
+  P6 --> B1
+
+  subgraph ORDER[11-15. ORDER SUBMISSION, FREIGHT, ORDER, STATUS, REFERENCE]
+    direction LR
+    Q1[Custom Order Request form - V<br/>cart, freight, allocations, notes, attachments]:::customer
+    Q1 --> Q2[Validate identity, company, cart, permissions, inputs, files]:::service
+    Q2 --> Q3[Create idempotency key; reserve reference e.g. TWV-140]:::data
+    Q3 --> Q4{Existing successful request?}:::control
+    Q4 -->|Yes| Q5[Return stored reference; no duplicate]:::service
+    Q4 -->|No| Q6{Freight checkbox?}:::control
+    Q6 -->|Checked| Q7[Configured status: Freight Request]:::bc
+    Q6 -->|Unchecked| Q8[Configured status: Order Request]:::bc
+    Q7 --> Q9[Create BigCommerce order once]:::bc
+    Q8 --> Q9
+    Q9 --> Q10{API outcome}:::control
+    Q10 -->|Success| Q11[Persist order ID + reference + status]:::data
+    Q10 -->|Timeout/5xx| Q12[Reconcile before safe retry]:::service
+    Q12 --> Q9
+    Q10 -->|Permanent failure| Q13[Mark failed; no email]:::control
+  end
+  B7 --> Q1
+
+  subgraph EMAIL[16-17. CUSTOMER AND INTERNAL EMAIL NOTIFICATIONS]
+    direction LR
+    E1[Email outbox after successful order]:::data
+    E1 --> E2[Customer email<br/>confirmation + same reference + details]:::customer
+    E1 --> E3[Internal email<br/>ELC_NACR_GLOBAL@twelvenyc.com<br/>customer/company/order/status + same reference]:::admin
+    E2 --> E4{Delivery result}:::control
+    E3 --> E4
+    E4 -->|Failure| E5[Retry email only; never recreate order]:::service
+    E4 -->|Success| E6[Record sent time + provider ID]:::data
+  end
+  Q11 --> E1
+
+  subgraph DATA[LOGICAL DATA ARCHITECTURE AND OWNERSHIP]
+    direction LR
+    D1[BigCommerce: B2B Company<br/>Company Domain + Account Configurator]:::bc
+    D2[BigCommerce: Customer + company association]:::bc
+    D3[BigCommerce: Catalog, cart, cart items]:::bc
+    D4[Recommended app store: Order Request<br/>idempotency key, state, snapshot]:::data
+    D5[BigCommerce: Order + configured status]:::bc
+    D6[Recommended app store: Reference + notifications + audit]:::data
+    D1 -->|1 to many| D2 -->|owns| D3 -->|submits| D4 -->|creates| D5
+    D4 -->|reference + notifications| D6
+  end
+  X0 --> D1
+  Q11 --> D5
+  E6 --> D6
+
+  subgraph SECURITY[SECURITY, LOGGING, MONITORING, AND OPERATIONS]
+    direction LR
+    S1[TLS, WAF/CDN, rate limits]:::control --> S2[Secure session, CSRF, protected routes]:::control
+    S2 --> S3[Default-deny cross-company authorization]:::control
+    S3 --> S4[Input sanitization + upload controls]:::control
+    S4 --> S5[Server-held least-privilege credentials]:::control
+    S5 --> S6[Structured redacted logs + correlation IDs]:::data
+    S6 --> S7[Metrics, alerts, audit trail, reconciliation runbook]:::data
+    S8[Admin RBAC; MFA recommended]:::admin --> S3
+  end
+  O4 --> S3
+  Q2 --> S4
+
+  subgraph JOURNEY[18. COMPLETE END-TO-END CUSTOMER JOURNEY]
+    direction LR
+    J1[Eligible user registers]:::customer --> J2[Existing company matched]:::service
+    J2 --> J3[Login + company policy loaded]:::service --> J4[Browse authorized catalog]:::customer
+    J4 --> J5[Authorized cart]:::customer --> J6[Submit validated request]:::customer
+    J6 --> J7[One BigCommerce order + correct status + stable reference]:::bc
+    J7 --> J8[Customer + internal emails]:::service
+    J8 --> J9[Tracked completion / retry / support]:::data
+  end
+  R5 --> J1
+  E6 --> J9

@@ -1,0 +1,90 @@
+---
+brand:
+    products:
+        limit: {{theme_settings.brandpage_products_per_page}}
+customer:
+    wishlists:
+        limit: 10
+gql: "{ customer { formFields { name ... on MultipleChoiceFormFieldValue { value } } } }"
+---
+{{inject "brandProductsPerPage" theme_settings.brandpage_products_per_page}}
+
+{{#partial "head"}}
+    {{#if pagination.brand.previous}}
+        <link rel="prev" href="{{{pagination.brand.previous}}}">
+    {{/if}}
+    {{#if pagination.brand.next}}
+        <link rel="next" href="{{{pagination.brand.next}}}">
+    {{/if}}
+    {{{stylesheet '/assets/css/category.css'}}}
+{{/partial}}
+
+{{#partial "page"}}
+<div class="container">
+    {{#if customer}}
+        {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+    {{/if}}
+</div>
+
+{{{region name="brand_below_header"}}}
+
+{{#if customer}}
+    <div class="account-policy-page-skeleton account-policy-page-skeleton--brand" aria-hidden="true">
+        <span></span><span></span><span></span><span></span>
+    </div>
+{{/if}}
+
+<div class="page twelve-category-page">
+
+    {{#if customer}}
+        <div class="container twelve-category-page__catalogue">
+            <div class="container">
+                <h1 class="top-category-hero__title" style="margin-bottom: 40px;">{{brand.name}}</h1>
+            </div>
+
+            {{#if brand.products}}
+                <aside class="page-sidebar" id="faceted-search-container">
+                    {{> components/brand/sidebar}}
+                </aside>
+            {{/if}}
+
+            <main class="page-content twelve-category-page__products" id="product-listing-container">
+                {{#if brand.search_error}}
+                    <p>{{lang 'search.errorMessage'}}</p>
+                {{else}}
+                    {{#if brand.products}}
+                        {{> components/brand/product-listing}}
+                    {{else}}
+                        <p style="margin: 50px 0;font-size: 16px">{{lang 'brands.no_products'}}</p>
+                    {{/if}}
+                    {{{region name="brand_below_content"}}}
+                {{/if}}
+
+                <section class="account-policy-message" data-account-empty-products hidden>
+                    <p>{{lang 'brands.no_products'}}</p>
+                </section>
+
+                <hr />
+                <p style="font-size: 16px;"><b>Don't see what you're looking for?</b></p>
+                <p>
+                    <a class="btn button-primary" href="/contact/" style="padding: 10px 15px;">
+                        <span>Contact us</span>
+                    </a>
+                </p>
+
+            </main>
+        </div>
+    {{else}}
+        
+        <div class="twelve-product-page__login" style="min-height: 600px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <h1>{{lang 'category.login_required.heading'}}</h1>
+            <p>{{lang 'category.login_required.message'}}</p>
+            <a class="button button--primary" href="{{urls.auth.login}}">{{lang 'category.login_required.button'}}</a>
+        </div>
+
+    {{/if}}
+
+</div>
+
+{{/partial}}
+{{> layout/base}}

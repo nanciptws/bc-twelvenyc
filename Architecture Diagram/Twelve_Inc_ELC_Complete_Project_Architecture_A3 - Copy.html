@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BigCommerce Product Architecture</title>
+<style>
+  :root{--violet:#6950ff;--violet2:#8170ff;--pale:#eeebff;--ink:#171927;--muted:#5f6474;--line:#b8afea;--blue:#1667b1;--green:#15815d;--orange:#b86900;--red:#b83c43;--paper:#fff}
+  *{box-sizing:border-box}html,body{margin:0;background:#252a31;color:var(--ink);font-family:Inter,"Segoe UI",Arial,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .toolbar{position:sticky;top:0;z-index:20;display:flex;justify-content:center;align-items:center;gap:14px;padding:10px;background:#151923;color:#fff}.toolbar button{border:0;border-radius:7px;background:var(--violet);color:#fff;padding:10px 18px;font-weight:800;cursor:pointer}.toolbar span{font-size:13px;color:#d8dbe6}
+  .sheet{position:relative;width:420mm;height:297mm;margin:14px auto;background:var(--paper);box-shadow:0 10px 38px #0008;overflow:hidden;padding:10mm 11mm 9mm}
+  .title-row{display:flex;align-items:center;gap:0;margin-bottom:4mm}.title-pill{position:relative;z-index:2;min-width:80mm;border-radius:20px;background:linear-gradient(90deg,var(--violet),var(--violet2));color:#fff;padding:3mm 6mm;font-size:18px;font-weight:800}.title-line{height:2px;background:var(--violet);flex:1}.subtitle{position:absolute;right:11mm;top:12mm;color:var(--muted);font-size:14px;font-weight:650}
+  .section-label{text-align:center;font-size:22px;font-weight:800;margin:1mm 0 3mm}.actors{display:grid;grid-template-columns:1fr 1fr;gap:8mm;max-width:250mm;margin:0 auto 3mm}.actor{position:relative;border:1.5px solid var(--line);border-radius:3mm;background:#fff;padding:4mm;text-align:center;min-height:24mm}.actor b{display:block;font-size:16px;margin-bottom:1.5mm}.actor span{font-size:14px;color:var(--muted)}.actor:after{content:"";position:absolute;left:50%;bottom:-8mm;height:8mm;border-left:1.5px solid #333}
+  .presentation{position:relative;margin:8mm 11mm 0;padding:5mm 8mm;background:linear-gradient(90deg,#e9e6ff,#dcd8ff,#e9e6ff);text-align:center;font-size:20px;font-weight:800;clip-path:polygon(2.5% 0,97.5% 0,100% 100%,0 100%)}.presentation small{display:block;margin-top:1mm;color:var(--violet);font-size:13px;font-weight:800;letter-spacing:.08em}
+  .capabilities{margin:0 5mm;border:1.5px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);background:#fff}.cap{min-height:34mm;padding:4mm;border-right:1px solid #d8d2fa;border-bottom:1px solid #d8d2fa;text-align:center;display:flex;flex-direction:column;justify-content:center}.cap:nth-child(5n){border-right:0}.cap:nth-last-child(-n+5){border-bottom:0}.cap b{font-size:15px;line-height:1.2}.cap span{font-size:13px;line-height:1.35;color:var(--muted);margin-top:2mm}
+  .api{position:relative;margin:0 6mm;background:linear-gradient(90deg,#6046ff,#7359ff);color:#fff;text-align:center;padding:4mm;font-size:19px;font-weight:850;clip-path:polygon(0 0,100% 0,96% 100%,4% 100%)}
+  .systems{position:relative;display:grid;grid-template-columns:1.25fr 1.1fr 1fr 1fr 1fr;gap:3mm;max-width:350mm;margin:6mm auto 0}.system{position:relative;min-height:30mm;border-radius:2mm;background:linear-gradient(180deg,#7359ff,#5e44ee);color:#fff;padding:4mm;text-align:center;display:flex;flex-direction:column;justify-content:center}.system:before{content:"";position:absolute;left:50%;top:-6mm;height:6mm;border-left:1.5px dashed var(--violet)}.system b{font-size:15px}.system span{font-size:12.5px;line-height:1.35;margin-top:1.5mm;color:#efedff}
+  .fields{border:1.5px solid var(--orange);background:#fff6dd;color:#593400}.fields b{color:#593400}.fields span{color:#765528}
+  .links{display:grid;grid-template-columns:repeat(3,1fr);gap:3mm;margin:5mm 12mm 0}.link{border-top:2px solid var(--violet);padding-top:2mm}.link b{display:block;font-size:13px}.link a{display:block;margin-top:1mm;color:var(--blue);font-size:12.5px;font-weight:650;text-decoration:underline;overflow-wrap:anywhere}
+  .legend{position:absolute;left:11mm;bottom:5mm;display:flex;gap:6mm;font-size:11.5px;color:var(--muted)}.legend i{display:inline-block;width:3mm;height:3mm;margin-right:1mm;vertical-align:-.4mm}.brand{position:absolute;right:11mm;bottom:5mm;color:var(--violet);font-size:14px;font-weight:850}.flow-note{position:absolute;right:4mm;top:103mm;writing-mode:vertical-rl;font-size:10.5px;color:var(--muted);letter-spacing:.05em}
+  @page{size:A3 landscape;margin:0}@media print{html,body{background:#fff}.toolbar{display:none}.sheet{margin:0;box-shadow:none}}
+</style>
+</head>
+<body>
+<div class="toolbar"><button onclick="window.print()">Print / Save as PDF</button><span>A3 · Landscape · Margins: None · Background graphics: On</span></div>
+<main class="sheet">
+  <div class="title-row"><div class="title-pill">BigCommerce Product Architecture</div><div class="title-line"></div></div>
+  <div class="subtitle">Twelve Inc. · ELC B2B Program</div>
+
+  <div class="section-label">User Experience</div>
+  <section class="actors">
+    <article class="actor"><b>Customer Experience</b><span>Sign Up · Sign In · Browse · Cart · Submit Order Request</span></article>
+    <article class="actor"><b>Administrator Experience</b><span>Select Company · Configure Brand and Product Access</span></article>
+  </section>
+
+  <section class="presentation">BigCommerce Stencil Presentation Layer<small>RESPONSIVE STOREFRONT · CUSTOMER SESSION · ACCOUNT CONFIGURATOR</small></section>
+
+  <section class="capabilities">
+    <article class="cap"><b>Registration</b><span>Email-domain validation against existing companies</span></article>
+    <article class="cap"><b>Company Matching</b><span>Secure customer-to-company association</span></article>
+    <article class="cap"><b>Brand Access</b><span>Company-specific brand visibility</span></article>
+    <article class="cap"><b>Product Access</b><span>Company-specific product visibility</span></article>
+    <article class="cap"><b>Catalog Experience</b><span>Home, categories, search and product details</span></article>
+    <article class="cap"><b>Account Configurator</b><span>Administrator-managed company permissions</span></article>
+    <article class="cap"><b>Cart Validation</b><span>Recheck company and product access</span></article>
+    <article class="cap"><b>Order Request</b><span>Custom form, delivery and freight details</span></article>
+    <article class="cap"><b>Order Processing</b><span>Duplicate prevention, reference and status</span></article>
+    <article class="cap"><b>Notifications</b><span>Customer and internal team emails</span></article>
+  </section>
+
+  <section class="api">Secure API &amp; Business Services Layer</section>
+
+  <section class="systems">
+    <article class="system fields"><b>BigCommerce B2B Company</b><span>Extra Field: Company Domain<br>Extra Field: Account Configurator</span></article>
+    <article class="system"><b>BigCommerce Catalog</b><span>Brands · Products · Categories · Search</span></article>
+    <article class="system"><b>Customer &amp; Cart</b><span>Authentication · Company · Cart Items</span></article>
+    <article class="system"><b>Orders</b><span>Freight Request · Order Request · Reference</span></article>
+    <article class="system"><b>Email &amp; Records</b><span>Request Ledger · Customer Email · Internal Email</span></article>
+  </section>
+
+  <section class="links">
+    <div class="link"><b>Sign In</b><a href="https://elc.twelvenyc.com/?signin=true">https://elc.twelvenyc.com/?signin=true</a></div>
+    <div class="link"><b>Sign Up</b><a href="https://elc.twelvenyc.com/?signup=true">https://elc.twelvenyc.com/?signup=true</a></div>
+    <div class="link"><b>Account Configurator</b><a href="https://elc.twelvenyc.com/account-configurator/">https://elc.twelvenyc.com/account-configurator/</a></div>
+  </section>
+
+  <div class="flow-note">Customer and Admin paths share secured company configuration and services</div>
+  <div class="legend"><span><i style="background:#e9e6ff"></i>Presentation</span><span><i style="background:#fff;border:1px solid #b8afea"></i>Business Capabilities</span><span><i style="background:#6950ff"></i>API / Systems</span></div>
+  <div class="brand">BigCommerce Product Architecture</div>
+</main>
+</body>
+</html>

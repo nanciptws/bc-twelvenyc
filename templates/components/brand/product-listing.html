@@ -1,0 +1,31 @@
+{{inject 'noCompareMessage' (lang 'compare.no_compare')}}
+<span hidden data-twelve-brand-count-source>
+    {{#each shop_by_brand}}
+        {{#if name '===' ../brand.name}}
+            {{count}}
+        {{/if}}
+    {{/each}}
+</span>
+{{#if brand.products}}
+    <header class="twelve-category-toolbar" data-twelve-total-source="">
+        <p class="twelve-category-toolbar__count">
+            Showing <span data-twelve-showing-count>{{brand.products.length}}</span> of <span data-twelve-total-count>{{brand.products.length}}</span>
+        </p>
+    </header>
+
+    <div data-list-name="Brand: {{brand.name}}" role="region" aria-label="{{brand.name}} products">
+        {{#if theme_settings.product_list_display_mode '===' 'grid'}}
+            {{> components/products/grid products=brand.products show_compare=brand.show_compare theme_settings=theme_settings customer=customer wishlists=customer.wishlists hide_wishlist=true event="list"}}
+        {{else}}
+            {{> components/products/list products=brand.products show_compare=brand.show_compare theme_settings=theme_settings customer=customer event="list"}}
+        {{/if}}
+    </div>
+
+    <div class="twelve-category-load-more" data-twelve-load-more>
+        <p class="twelve-category-load-more__count"><span data-twelve-loaded-count>{{brand.products.length}}</span> of <span data-twelve-load-total>{{brand.products.length}}</span> products</p>
+        <span class="twelve-category-load-more__track"><i data-twelve-load-progress></i></span>
+        {{#if pagination.brand.next}}
+            <a class="button twelve-category-load-more__button" href="{{pagination.brand.next}}" data-twelve-load-more-button><span>Load more</span></a>
+        {{/if}}
+    </div>
+{{/if}}

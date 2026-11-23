@@ -1,0 +1,143 @@
+---
+category:
+    products:
+        limit: {{theme_settings.categorypage_products_per_page}}
+customer:
+    wishlists:
+        limit: 10
+---
+{{inject "categoryProductsPerPage" theme_settings.categorypage_products_per_page}}
+{{#partial "head"}}
+    {{#if pagination.category.previous}}
+        <link rel="prev" href="{{{pagination.category.previous}}}">
+    {{/if}}
+    {{#if pagination.category.next}}
+        <link rel="next" href="{{{pagination.category.next}}}">
+    {{/if}}
+    {{{stylesheet '/assets/css/category.css'}}}
+
+    <style>
+        [data-sustainably-sourced-category] .twelve-category-page__catalogue {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        [data-sustainably-sourced-category].is-filtered-ready .twelve-category-page__catalogue {
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 180ms ease;
+        }
+
+        .sustainably-sourced-loader {
+            align-items: center;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            justify-content: center;
+            min-height: 420px;
+        }
+
+        .is-filtered-ready > .sustainably-sourced-loader {
+            display: none;
+        }
+
+        .sustainably-sourced-loader::before {
+            animation: sustainably-sourced-spin 650ms linear infinite;
+            border: 2px solid #d8d8d8;
+            border-radius: 50%;
+            border-top-color: #111;
+            content: "";
+            height: 38px;
+            width: 38px;
+        }
+
+        @keyframes sustainably-sourced-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
+{{/partial}}
+
+{{#partial "page"}}
+
+<div class="container">
+    {{#if customer}}
+        {{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+    {{/if}}
+</div>
+
+<section class="top-category-hero" hidden>
+    {{#unless theme_settings.hide_category_page_heading }}
+        <h1 class="top-category-hero__title">{{category.name}}</h1>
+    {{/unless}}
+    {{{category.description}}}
+</section>
+
+{{{region name="page_main_banner"}}}
+
+<script type="application/json" data-sustainably-sourced-filters>
+[
+    ["_int_Sustainably Sourced[]", "Other recycled content"],
+    ["_int_Sustainably Sourced[]", "FSC paper"],
+    ["_int_Sustainably Sourced[]", "Kraft paper"],
+    ["_int_Sustainably Sourced[]", "RPET"],
+    ["_int_Sustainably Sourced[]", "RPET; Other recycled content"]
+]
+</script>
+
+<div class="page twelve-category-page" {{#if customer}}data-sustainably-sourced-category{{/if}}>
+    
+    {{#if customer}}
+    
+        <div class="sustainably-sourced-loader" role="status" aria-live="polite">
+            <span>Loading products…</span>
+        </div>
+
+        <div class="container twelve-category-page__catalogue">
+    
+            {{#if category.products}}
+                {{#if category.faceted_search_enabled}}
+                    <aside class="page-sidebar" id="faceted-search-container">
+                        {{> components/category/sidebar}}
+                    </aside>
+                {{else if category.subcategories}}
+                    <aside class="page-sidebar" id="faceted-search-container">
+                        {{> components/category/sidebar}}
+                    </aside>
+                {{else if theme_settings.shop_by_price_visibility}}
+                    <aside class="page-sidebar" id="faceted-search-container">
+                        {{> components/category/sidebar}}
+                    </aside>
+                {{/if}}
+            {{/if}}
+    
+            <main class="page-content twelve-category-page__products" id="product-listing-container">
+                {{> components/category/product-listing}}
+            </main>
+    
+            <div class="page-region">
+                {{{region name="category_below_content"}}}
+            </div>
+        </div>
+    
+    
+    {{else}}
+        
+        <div class="twelve-product-page__login" style="min-height: 600px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div class="container">
+                <h1>{{lang 'category.login_required.heading'}}</h1>
+                <p>{{lang 'category.login_required.message'}}</p>
+                <a class="button button--primary" href="{{urls.auth.login}}">{{lang 'category.login_required.button'}}</a>
+            </div>
+
+        </div>
+
+    {{/if}}
+
+    
+</div>
+
+{{/partial}}
+{{> layout/base}}

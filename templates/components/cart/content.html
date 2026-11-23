@@ -1,0 +1,28 @@
+<div class="twelve-cart-table" data-cart-quantity="{{cart.quantity}}">
+    <div class="twelve-cart-table__head" aria-hidden="true"><span>Product</span><span>Unit price</span><span>Quantity</span><span>Total</span></div>
+    <div class="twelve-cart-table__body">
+        {{#each cart.items}}
+            <article class="twelve-cart-line" data-item-row data-cart-item-id="{{id}}">
+                <div class="twelve-cart-line__product">
+                    <a class="twelve-cart-line__figure" href="{{url}}">
+                        {{#if type '==' 'GiftCertificate'}}<img class="cart-item-fixed-image" src="{{cdn ../theme_settings.default_image_gift_certificate}}" alt="{{name}}">{{else}}{{> components/common/responsive-img image=image class="cart-item-image" fallback_size=../theme_settings.productthumb_size lazyload="lazyload" default_image=../theme_settings.default_image_product}}{{/if}}
+                    </a>
+                    <div><h2><a href="{{url}}">{{name}}</a></h2><div class="twelve-cart-line__meta">{{#if sku}}<span>Product ID {{sku}}</span>{{/if}}{{#if brand.name}}<span>{{brand.name}}</span>{{/if}}{{#each options}}<span>{{name}}: {{value}}</span>{{/each}}</div>
+                    {{#or can_modify (if type '==' 'GiftCertificate')}}<button class="cart-remove twelve-cart-line__remove" data-cart-itemid="{{id}}" data-confirm-delete="{{lang 'cart.confirm_delete'}}" aria-label="{{lang 'cart.remove_item' name=name}}">Remove</button>{{/or}}</div>
+                </div>
+                <div class="twelve-cart-line__unit">{{#or ../customer (unless ../settings.hide_price_from_guests) (if type '==' 'GiftCertificate')}}{{price.formatted}}{{else}}{{> components/common/login-for-pricing}}{{/or}}<span>EXW / unit</span></div>
+                <div class="twelve-cart-line__quantity"><div class="form-increment">
+                    {{#if can_modify}}<button class="button button--icon" data-cart-update data-cart-itemid="{{id}}" data-action="dec"><span class="is-srOnly">{{lang 'products.quantity_decrease' name=name}}</span>&minus;</button>{{/if}}
+                    <input class="form-input form-input--incrementTotal cart-item-qty-input" id="qty-{{id}}" name="qty-{{id}}" type="tel" value="{{quantity}}" data-quantity-min="{{min_purchase_quantity}}" data-quantity-max="{{max_purchase_quantity}}" data-quantity-min-error="{{lang 'products.quantity_min' quantity=min_purchase_quantity}}" data-quantity-max-error="{{lang 'products.quantity_max' quantity=max_purchase_quantity}}" min="1" pattern="[0-9]*" data-cart-itemid="{{id}}" data-action="manualQtyChange" aria-label="{{name}}" aria-live="polite"{{#unless can_modify}} disabled{{/unless}}>
+                    {{#if can_modify}}<button class="button button--icon" data-cart-update data-cart-itemid="{{id}}" data-action="inc"><span class="is-srOnly">{{lang 'products.quantity_increase' name=name}}</span>+</button>{{/if}}</div>
+                    
+                    {{!-- 
+                    {{#if min_purchase_quantity}}<span class="twelve-cart-line__minimum">Min {{min_purchase_quantity}} units</span>{{/if}}
+                    --}}
+                    
+                    </div>
+                <div class="twelve-cart-line__total">{{#or ../customer (unless ../settings.hide_price_from_guests)}}{{total.formatted}}{{else}}&mdash;{{/or}}</div>
+            </article>
+        {{/each}}
+    </div>
+</div>

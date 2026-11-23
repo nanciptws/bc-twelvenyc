@@ -1,0 +1,53 @@
+<div class="twelve-announcement">
+    <div class="twelve-announcement-inner">
+        <div class="twelve-announcement-message">
+            {{{region name="header_announcement--global"}}}
+        </div>
+        <nav class="twelve-localization" aria-label="{{lang 'header.store_preferences'}}">
+
+
+            <div>
+                {{#if (getVar "globalCustomerRegion") '==' 'EUKEM'}}
+                    <a class="connect-with-us tooltip_hover_state" href="mailto:ELC_EUKEM@twelvenyc.com">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M3 6h18v12H3z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M3 7l9 6 9-6" fill="none" stroke="currentColor" stroke-width="1.6"></path></svg>
+                        <span>{{lang 'social.connect'}}</span>
+                        <div class="tooltip_content_box">
+                            <p>ELC_EUKEM@twelvenyc.com</p>
+                        </div>
+                    </a>
+                {{else}}
+                    <a class="connect-with-us tooltip_hover_state" href="mailto:ELC_NACR_GLOBAL@twelvenyc.com">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M3 6h18v12H3z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M3 7l9 6 9-6" fill="none" stroke="currentColor" stroke-width="1.6"></path></svg>
+                        <span>{{lang 'social.connect'}}</span>
+                        <div class="tooltip_content_box">
+                            <p>ELC_NACR_GLOBAL@twelvenyc.com</p>
+                        </div>
+                    </a>
+                {{/if}}
+            </div>
+
+            <div class="twelve-localization-group">
+                <span class="twelve-localization-label">{{lang 'header.language'}}</span>
+                {{#and language_selector language_selector.languages.length '>' 1}}
+                    {{> components/common/language-selector compact=true}}
+                {{else}}
+                    <span class="twelve-language-static">{{lang 'header.language_code'}}</span>
+                {{/and}}
+            </div>
+            {{#or customer (unless settings.hide_price_from_guests)}}
+                <div class="twelve-localization-group">
+                    <span class="twelve-localization-label">{{lang 'header.currency'}}</span>
+                    {{> components/common/currency-selector}}
+                </div>
+            {{/or}}
+            {{#if theme_settings.show_channels}}{{> components/common/channel-selector}}{{/if}}
+            {{#if customer}}
+                <a href="{{urls.account.index}}">{{lang 'common.account'}}</a>
+                <a href="{{urls.auth.logout}}">{{lang 'common.logout'}}</a>
+            {{else}}
+                <a href="{{urls.auth.login}}">{{lang 'common.login'}}</a>
+                <a class="open-signup-popup" href="javascript:void(0)">{{lang 'common.sign_up'}}</a>
+            {{/if}}
+        </nav>
+    </div>
+</div>

@@ -1,0 +1,8 @@
+<div class="accordion-block">
+    {{> components/faceted-search/faceted-search-navigation}}
+
+    <div id="facetedSearch-content--{{dashcase facet}}" class="accordion-content" data-facet-title="{{title}}" aria-hidden="true">
+        {{> components/faceted-search/range-form}}
+        {{> components/faceted-search/twelve-facet-footer}}
+    </div>
+</div>

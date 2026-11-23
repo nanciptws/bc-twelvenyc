@@ -1,0 +1,108 @@
+---
+brands:
+---
+
+{{#partial "page"}}
+
+{{> components/common/breadcrumbs breadcrumbs=breadcrumbs}}
+
+
+<main class="page">
+    <h1 class="page-heading">{{lang 'brand.label'}}</h1>
+    {{{region name="brands_below_header"}}}
+    <ul class="brandGrid">
+        {{#each brands}}
+            <li class="brand" data-brand-preview data-brand-name="{{name}}" data-account-brand-id="{{id}}">
+                <article class="card {{#if alternate}}card--alternate{{/if}}">
+                    <figure class="card-figure">
+                        <a class="card-figure__link" aria-label="{{name}}" href="{{url}}" data-brand-preview-url>
+                            <div class="card-img-container">
+                                {{> components/common/responsive-img
+                                    image=image
+                                    class="card-image"
+                                    fallback_size=../theme_settings.brand_size
+                                    lazyload=../theme_settings.lazyload_mode
+                                    default_image=../theme_settings.default_image_brand
+                                }}
+                            </div>
+                        </a>
+                    </figure>
+                    <div class="card-body">
+                        <h3 class="card-title">
+                            <a href="{{url}}">{{name}}</a>
+                        </h3>
+                    </div>
+                </article>
+            </li>
+        {{/each}}
+    </ul>
+    {{> components/common/paginator pagination.brands}}
+    {{{region name="brands_below_content"}}}
+</main>
+
+<script>
+    (function () {
+        var cards = Array.prototype.slice.call(document.querySelectorAll('[data-brand-preview]'));
+        var storefrontToken = '{{settings.storefront_api.token}}';
+        var query = 'query BrandPreviews { site { brands(first: 50) { edges { node { name products(first: 2, sortBy: NEWEST) { edges { node { name defaultImage { url(width: 300) altText } } } } } } } } }';
+
+        function setProductImage(target, image, productName) {
+            target.setAttribute('src', image.url);
+            target.setAttribute('alt', image.altText || productName || 'Brand product preview');
+            target.removeAttribute('srcset');
+            target.removeAttribute('data-srcset');
+            target.removeAttribute('data-sizes');
+            target.classList.remove('lazyload', 'no-image');
+        }
+
+        if (!cards.length || !storefrontToken) return;
+
+        fetch('/graphql', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: 'Bearer ' + storefrontToken,
+            },
+            body: JSON.stringify({ query: query }),
+        })
+            .then(function (response) {
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+            })
+            .then(function (result) {
+                var brandEdges;
+                var brandsByName = {};
+
+                if (result.errors && result.errors.length) {
+                    throw new Error(result.errors.map(function (error) { return error.message; }).join('; '));
+                }
+
+                brandEdges = result.data && result.data.site && result.data.site.brands
+                    ? result.data.site.brands.edges
+                    : [];
+
+                brandEdges.forEach(function (edge) {
+                    brandsByName[edge.node.name] = edge.node;
+                });
+
+                cards.forEach(function (card) {
+                    var brand = brandsByName[card.getAttribute('data-brand-name')];
+                    var productEdges = brand && brand.products ? brand.products.edges : [];
+                    var productEdge = productEdges.find(function (edge) {
+                        return edge.node.defaultImage && edge.node.defaultImage.url;
+                    });
+                    var targetImage = card.querySelector('.card-image');
+
+                    if (productEdge && targetImage) {
+                        setProductImage(targetImage, productEdge.node.defaultImage, productEdge.node.name);
+                    }
+                });
+            })
+            .catch(function (error) {
+                console.warn('Brand preview images could not be loaded:', error.message);
+            });
+    }());
+</script>
+{{/partial}}
+{{> layout/base}}

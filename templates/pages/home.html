@@ -1,0 +1,87 @@
+---
+gql: "{ customer { formFields { name ... on MultipleChoiceFormFieldValue { value } } } }"
+---
+{{#partial "head"}}
+    {{{stylesheet '/assets/css/home.css'}}}
+{{/partial}}
+
+{{#partial "page"}}
+    
+
+    <div class="welcome-intro" id="welcome-intro" aria-hidden="true">
+        <div class="welcome-intro-mark">
+            <span class="welcome-intro-half l"></span>
+            <div class="welcome-intro-win" id="welcome-intro-win"></div>
+            <span class="welcome-intro-half r"></span>
+        </div>
+        <button class="welcome-intro-skip" id="welcome-intro-skip" type="button">Skip</button>
+    </div>
+
+    <div class="twelve-home">
+        
+        <div class="container">
+            {{#each shipping_messages}}{{> components/common/alert/alert-info message}}{{/each}}
+        </div>
+        
+
+        <h1 class="is-srOnly">Twelve — packaging, premiums and gifting</h1>
+        {{{region name="home_main_banner"}}}
+        {{{region name="home_shop_category"}}}
+        {{{region name="home_sustainability"}}}
+        
+        <section class="stay-inspired" aria-labelledby="stay-inspired-title">
+            <div class="stay-inspired__inner">
+                <header class="stay-inspired__intro">
+                    <span class="stay-inspired__eyebrow">Stay Inspired</span>
+                    <h2 id="stay-inspired-title">Trends we're<br> loving</h2>
+                    <p>Our edit of what's moving across runways, film and culture, and how it translates into product, packaging and merch.</p>
+                </header>
+
+                <div class="stay-inspired__articles">
+                    <article class="inspired-card">
+                        <a class="inspired-card__image" href="https://drive.google.com/file/d/1_Kja64RyNCQXEhYNMiv93upuXcRwJ5pH/view?usp=sharing" target="_blank" rel="noopener" aria-label="View NYFW Recap PDF">
+                            <img src="https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/nyfw-recap-page-0001.jpg" alt="NYFW Recap: The Runway Themes Shaping Trend for the Seasons Ahead" loading="lazy">
+                        </a>
+                        <p class="inspired-card__meta">Runway · 7 pages</p>
+                        <h3>NYFW Recap</h3>
+                        <p class="inspired-card__summary">The runway themes shaping trend for the seasons ahead</p>
+                        <div class="inspired-card__actions">
+                            <a class="inspired-card__button inspired-card__button--view" href="https://drive.google.com/file/d/1_Kja64RyNCQXEhYNMiv93upuXcRwJ5pH/view?usp=sharing" target="_blank" rel="noopener">View</a>
+                            <a class="inspired-card__button inspired-card__button--download" href="https://drive.google.com/file/d/1_Kja64RyNCQXEhYNMiv93upuXcRwJ5pH/view?usp=sharing" target="_blank" download>Download</a>
+                        </div>
+                    </article>
+
+                    <article class="inspired-card">
+                        <a class="inspired-card__image" href="https://drive.google.com/file/d/1w_IH9TNmQeqhCrQtG2jzchIrhTJ0Kj-i/view?usp=sharing" target="_blank" rel="noopener" aria-label="View Lights, Camera, Content PDF">
+                            <img src="https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/lights-camera-content-pages-to-jpg-0001.jpg" alt="Lights, Camera, Content: How Brands Are Transforming Storytelling From Feed To Film" loading="lazy">
+                        </a>
+                        <p class="inspired-card__meta">Culture · 7 pages</p>
+                        <h3>Lights, Camera,<br>Content</h3>
+                        <p class="inspired-card__summary">How brands are transforming storytelling from feed to film</p>
+                        <div class="inspired-card__actions">
+                            <a class="inspired-card__button inspired-card__button--view" href="https://drive.google.com/file/d/1w_IH9TNmQeqhCrQtG2jzchIrhTJ0Kj-i/view?usp=sharing" target="_blank" rel="noopener">View</a>
+                            <a class="inspired-card__button inspired-card__button--download" href="https://drive.google.com/file/d/1w_IH9TNmQeqhCrQtG2jzchIrhTJ0Kj-i/view?usp=sharing" target="_blank" download>Download</a>
+                        </div>
+                    </article>
+
+                    <article class="inspired-card">
+                        <a class="inspired-card__image" href="https://drive.google.com/file/d/1UV8iTIz9n58JrUnWytdWSqRjcG0yJeFm/view?usp=sharing" target="_blank" rel="noopener" aria-label="View Everything is Merch PDF">
+                            <img src="https://cdn11.bigcommerce.com/s-ga7j4wazzm/images/stencil/original/image-manager/everything-is-merch-page-0001.jpg" alt="Everything is Merch: How Branded Keepsakes Became Badges of Belonging" loading="lazy">
+                        </a>
+                        <p class="inspired-card__meta">Merch · 5 pages</p>
+                        <h3>Everything is Merch</h3>
+                        <p class="inspired-card__summary">How branded keepsakes became badges of belonging</p>
+                        <div class="inspired-card__actions">
+                            <a class="inspired-card__button inspired-card__button--view" href="https://drive.google.com/file/d/1UV8iTIz9n58JrUnWytdWSqRjcG0yJeFm/view?usp=sharing" target="_blank" rel="noopener">View</a>
+                            <a class="inspired-card__button inspired-card__button--download" href="https://drive.google.com/file/d/1UV8iTIz9n58JrUnWytdWSqRjcG0yJeFm/view?usp=sharing" target="_blank" download>Download</a>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+
+    </div>
+
+{{/partial}}
+{{> layout/base}}

@@ -1,0 +1,66 @@
+{{#if banners.bottom}}
+    <div class="banners" data-banner-location="bottom">
+        {{#each (limit banners.bottom_metadata 1)}}
+            <div class="banner" data-event-type="promotion" data-entity-id="{{this.id}}" data-name="{{this.banner-name}}" data-position="{{this.location}}"><div data-event-type="promotion-click">{{{this.content}}}</div></div>
+        {{/each}}
+    </div>
+{{/if}}
+<footer class="twelve-footer" role="contentinfo">
+    <div class="twelve-footer-top">
+        <div class="twelve-footer-brand">
+            <span class="twelve-footer-wordmark" role="img" aria-label="Twelve">TWELVE</span>
+            {{{region name="footer_store_info--global"}}}
+            {{{region name="footer_country--global"}}}
+        </div>
+        <section class="twelve-footer-column">
+            <h2>{{{region name="footer_head_1--global"}}}</h2><button type="button" data-twelve-footer-toggle aria-expanded="false">Shop <span aria-hidden="true"></span></button>
+            <div data-twelve-footer-content>
+                {{{region name="footer_links_1--global"}}}
+            </div>
+        </section>
+        <section class="twelve-footer-column">
+            <h2>{{{region name="footer_head_2--global"}}}</h2><button type="button" data-twelve-footer-toggle aria-expanded="false">Information <span aria-hidden="true"></span></button>
+            <div data-twelve-footer-content>
+
+                {{{region name="footer_links_2--global"}}}
+
+                <div style="margin: 20px 0;">
+                    <a class="connect-with-us tooltip_hover_state" href="mailto:elcsupport@twelvenyc.com">
+                        <svg viewBox="0 0 24 24" aria-hidden="true" width="22" height="22"><path d="M3 6h18v12H3z" fill="none" stroke="currentColor" stroke-width="1.6"></path><path d="M3 7l9 6 9-6" fill="none" stroke="currentColor" stroke-width="1.6"></path></svg>
+                        <span>Techncial Support</span>
+                        <div class="tooltip_content_box" style="left: 0;">
+                            <p>elcsupport@twelvenyc.com</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+        </section>
+        <section class="twelve-footer-column">
+            <h2>{{{region name="footer_head_3--global"}}}</h2><button type="button" data-twelve-footer-toggle aria-expanded="false">Follow <span aria-hidden="true"></span></button>
+            <div data-twelve-footer-content>
+                {{{region name="footer_links_3--global"}}}
+            </div>
+        </section>
+        <section class="twelve-footer-column twelve-footer-newsletter">
+            <h2>{{{region name="footer_head_4--global"}}}</h2><button type="button" data-twelve-footer-toggle aria-expanded="false">Stay Inspired <span aria-hidden="true"></span></button>
+            <div data-twelve-footer-content>
+                {{{region name="footer_newsletter_1--global"}}}
+                <form action="{{urls.subscribe.action}}" method="post">
+                    <input type="hidden" name="action" value="subscribe"><input type="hidden" name="nl_first_name" value="bc"><input type="hidden" name="check" value="1">
+                    <label class="is-srOnly" for="twelve-footer-email">Email address</label><input id="twelve-footer-email" name="nl_email" type="email" value="{{customer.email}}" placeholder="you@company.com" autocomplete="email" required><button type="submit" aria-label="Subscribe">&rarr;</button>
+                </form>
+            </div>
+            {{{region name="footer_need_help--global"}}}
+        </section>
+    </div>
+    <div class="twelve-footer-bar"><div>
+        <span>&copy; {{moment format="YYYY"}} Twelve NYC</span>
+            <nav aria-label="Legal">
+                {{{region name="footer_links_5--global"}}}
+            </nav>
+            <span>All prices EXW · shipping and duties excluded</span>
+    </div></div>
+    {{{region name="ssl_site_seal--global"}}}
+</footer>
+

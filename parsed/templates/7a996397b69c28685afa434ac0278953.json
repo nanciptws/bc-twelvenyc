@@ -1,0 +1,1 @@
+{"components/common/twelve-category-link":"<a href=\"{{url}}\" data-account-category-id=\"{{id}}\" {{#if is_active}}aria-current=\"page\"{{/if}}>{{name}}</a>\n{{#if children}}<ul>{{#each children}}<li>{{> components/common/twelve-category-link}}</li>{{/each}}</ul>{{/if}}\n"}
